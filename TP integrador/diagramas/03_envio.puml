@@ -1,0 +1,37 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Metodos de envio - Strategy
+interface MetodoEnvio {
+  +calcularCosto(p: Pedido): double
+  +estimarDias(): String
+}
+class EnvioEstandar {
+  +calcularCosto(p): double
+  +estimarDias(): String
+}
+class EnvioExpress {
+  -cargoBase: double
+  -porcentaje: double
+  +calcularCosto(p): double
+  +estimarDias(): String
+}
+class RetiroEnSucursal {
+  -sucursal: Sucursal
+  +calcularCosto(p): double
+  +estimarDias(): String
+}
+class CorreoArgentina <<library>> {
+  +{static} estimarEnvio(peso: float, dir: Direccion): float
+}
+class Sucursal
+class Pedido
+
+MetodoEnvio <|.. EnvioEstandar
+MetodoEnvio <|.. EnvioExpress
+MetodoEnvio <|.. RetiroEnSucursal
+EnvioEstandar ..> CorreoArgentina : usa
+RetiroEnSucursal --> Sucursal
+Pedido "1" o-- "1" MetodoEnvio
+@enduml

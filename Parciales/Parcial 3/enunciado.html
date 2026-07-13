@@ -1,0 +1,47 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+body{font-family:Georgia,'Times New Roman',serif; font-size:13px; line-height:1.5; width:780px; margin:24px; color:#111;}
+h1{text-align:center; font-size:16px; margin:0;}
+h2{text-align:center; font-size:14px; margin:2px 0 18px 0; font-weight:normal;}
+h3{font-size:14px; margin:16px 0 6px 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:12px; background:#f4f4f4; border:1px solid #ccc; padding:6px;}
+ul,ol{margin:4px 0;}
+.tag{text-align:center; color:#555; font-size:12px; margin-bottom:10px;}
+</style>
+</head>
+<body>
+<h1>Programaci&oacute;n con Objetos 2 &mdash; UNQ</h1>
+<h2>Parcial de pr&aacute;ctica N&deg;3 &middot; Parte pr&aacute;ctica</h2>
+<div class="tag">(Sistema de seguimiento de pedidos &mdash; para practicar State + Observer)</div>
+
+<h3>Ejercicio 1</h3>
+<p>Un e-commerce necesita modelar el <b>ciclo de vida de un Pedido</b>. Cada pedido conoce un identificador y un cliente, y en todo momento se encuentra en un <b>estado</b>. Las operaciones que se le pueden pedir a un pedido son: <b>confirmar</b>, <b>enviar</b>, <b>entregar</b> y <b>cancelar</b>.</p>
+<p>El resultado de cada operaci&oacute;n <b>depende del estado actual</b> del pedido. Los estados y sus transiciones v&aacute;lidas son:</p>
+<ul>
+<li><b>Pendiente:</b> reci&eacute;n creado. Se puede <b>confirmar</b> (pasa a Confirmado) o <b>cancelar</b> (pasa a Cancelado). Enviar o entregar no est&aacute; permitido.</li>
+<li><b>Confirmado:</b> el pago fue aceptado. Se puede <b>enviar</b> (pasa a Enviado) o <b>cancelar</b> (pasa a Cancelado). Confirmar o entregar no est&aacute; permitido.</li>
+<li><b>Enviado:</b> ya sali&oacute; del dep&oacute;sito. Se puede <b>entregar</b> (pasa a Entregado). Ya <b>no se puede cancelar</b>, ni confirmar ni volver a enviar.</li>
+<li><b>Entregado:</b> estado final. No permite ninguna operaci&oacute;n.</li>
+<li><b>Cancelado:</b> estado final. No permite ninguna operaci&oacute;n.</li>
+</ul>
+<p>Cuando una operaci&oacute;n <b>no est&aacute; permitida</b> en el estado actual, se debe lanzar una excepci&oacute;n con un mensaje claro (por ejemplo <tt>throw new RuntimeException("No se puede enviar un pedido que no fue confirmado")</tt>). El dise&ntilde;o debe permitir <b>incorporar nuevos estados en el futuro</b> sin tener que modificar los estados ya existentes.</p>
+
+<h3>Ejercicio 2</h3>
+<p>Los pedidos deben poder ser <b>seguidos por distintos interesados</b>. Cada vez que un pedido <b>cambia de estado</b>, debe <b>notificar autom&aacute;ticamente</b> a todos los interesados que se hayan suscripto a &eacute;l, para que reaccionen como quieran (por ejemplo: mandar un mail al cliente, avisar al sistema de log&iacute;stica, registrar en una auditor&iacute;a).</p>
+<p>Para ello se dispone de la siguiente interfaz externa, la cual puede utilizar y <b>no debe implementar</b>:</p>
+<pre>public interface ObservadorDePedido {
+    // Se invoca cada vez que el pedido cambia de estado.
+    public void seActualizo(Pedido pedido);
+}</pre>
+<p>El pedido debe permitir <b>suscribir</b> y <b>desuscribir</b> observadores. Cada vez que una operaci&oacute;n del Ejercicio 1 provoca un cambio de estado, se debe avisar a todos los observadores suscriptos. Un observador que se dio de baja ya no debe recibir avisos.</p>
+
+<h3>Actividades</h3>
+<ol>
+<li>Genere un diagrama de clases UML con las soluciones completas e integradas de ambos ejercicios.</li>
+<li>Indique los patrones de dise&ntilde;o utilizados, incluyendo los roles que cumplen sus clases siguiendo las definiciones de Gamma et. al.</li>
+<li>Implemente en Java la funcionalidad completa para resolver todos los requerimientos y las clases necesarias. Incluya los constructores. Implemente solamente los accessors que necesite.</li>
+<li>Codifique un ejemplo de instanciaci&oacute;n: cree un pedido, suscr&iacute;bale al menos un observador, y hac&eacute;lo pasar por la secuencia Pendiente &rarr; Confirmado &rarr; Enviado &rarr; Entregado, mostrando que en cada cambio los observadores son avisados. Intente adem&aacute;s una operaci&oacute;n inv&aacute;lida (por ejemplo, entregar un pedido reci&eacute;n creado) para ver que lanza la excepci&oacute;n.</li>
+</ol>
+</body>
+</html>

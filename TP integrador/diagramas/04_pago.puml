@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Metodos de pago - Template Method
+abstract MetodoPago {
+  +procesarPago(p: Pedido): void <<template, final>>
+  #validarDatos(): void <<abstract>>
+  #reservarFondos(): void <<abstract>>
+  #ejecutarTransaccion(): void <<abstract>>
+  #notificarResultado(): void <<hook default>>
+}
+class PagoTarjetaCredito
+class PagoTransferencia
+class PagoBilleteraVirtual
+interface APITarjetaCredito {
+  +validarTarjeta(num, cvv, venc): boolean
+  +preautorizar(monto)
+  +transferir(monto)
+}
+interface APITransferencia {
+  +validarCBUyAlias(cbu, alias): boolean
+  +transferir(monto)
+}
+interface APIBilletera {
+  +validarSaldo(monto): boolean
+  +bloquearSaldo(monto)
+  +acreditar(monto)
+  +notificarPush()
+}
+class Comprobante
+
+MetodoPago <|-- PagoTarjetaCredito
+MetodoPago <|-- PagoTransferencia
+MetodoPago <|-- PagoBilleteraVirtual
+PagoTarjetaCredito ..> APITarjetaCredito : usa
+PagoTransferencia ..> APITransferencia : usa
+PagoBilleteraVirtual ..> APIBilletera : usa
+MetodoPago ..> Comprobante : genera y registra
+@enduml

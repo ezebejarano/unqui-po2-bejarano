@@ -1,0 +1,46 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+body{font-family:Georgia,'Times New Roman',serif; font-size:13px; line-height:1.5; width:780px; margin:24px; color:#111;}
+h1{text-align:center; font-size:16px; margin:0;}
+h2{text-align:center; font-size:14px; margin:2px 0 18px 0; font-weight:normal;}
+h3{font-size:14px; margin:16px 0 6px 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:12px; background:#f4f4f4; border:1px solid #ccc; padding:6px;}
+ul,ol{margin:4px 0;}
+.tag{text-align:center; color:#555; font-size:12px; margin-bottom:10px;}
+</style>
+</head>
+<body>
+<h1>Programaci&oacute;n con Objetos 2 &mdash; UNQ</h1>
+<h2>Parcial de pr&aacute;ctica N&deg;4 &middot; Parte pr&aacute;ctica</h2>
+<div class="tag">(Empresa de env&iacute;os / paqueter&iacute;a &mdash; para practicar Template Method)</div>
+
+<h3>Ejercicio 1</h3>
+<p>Una empresa de <b>env&iacute;os</b> necesita calcular el <b>costo total</b> de cada paquete que despacha. De cada env&iacute;o se conoce el <b>peso</b> (en kg) y el <b>destinatario</b>.</p>
+<p>El c&aacute;lculo del costo total sigue <b>siempre los mismos pasos y en el mismo orden</b>, sin importar el tipo de env&iacute;o:</p>
+<ol>
+<li>Se parte de un <b>costo base</b> (depende del tipo de env&iacute;o).</li>
+<li>Se le suma un <b>recargo por peso</b> (depende del tipo de env&iacute;o).</li>
+<li>Se le suma un <b>seguro</b>, que es <b>opcional</b>: por defecto es $0, salvo que el tipo de env&iacute;o indique lo contrario.</li>
+<li>A esa suma (costo base + recargo + seguro) se le aplica un <b>21% de IVA</b>. El resultado es el costo total.</li>
+</ol>
+<p>El <b>esqueleto</b> del c&aacute;lculo (los pasos y su orden) es <b>fijo e igual para todos</b> los env&iacute;os; lo &uacute;nico que cambia entre un tipo y otro es cu&aacute;nto vale cada paso. Los dos tipos iniciales son:</p>
+<ul>
+<li><b>Env&iacute;o Est&aacute;ndar:</b> costo base $500; recargo por peso $100 por cada kg; sin seguro.</li>
+<li><b>Env&iacute;o Express:</b> costo base $1200; recargo por peso $200 por cada kg; sin seguro.</li>
+</ul>
+<p>El dise&ntilde;o debe permitir <b>incorporar nuevos tipos de env&iacute;o en el futuro</b> sin repetir ni modificar la l&oacute;gica del esqueleto del c&aacute;lculo.</p>
+
+<h3>Ejercicio 2</h3>
+<p>La empresa incorpora un nuevo tipo, el <b>Env&iacute;o Internacional</b>, que <b>s&iacute; contrata un seguro</b>: costo base $3000; recargo por peso $150 por cada kg; y un <b>seguro equivalente al 5%</b> de la suma (costo base + recargo por peso).</p>
+<p>Agregue este tipo al modelo <b>aprovechando el paso opcional (seguro)</b> ya previsto, sin tocar ni el esqueleto del c&aacute;lculo ni los otros tipos de env&iacute;o.</p>
+
+<h3>Actividades</h3>
+<ol>
+<li>Genere un diagrama de clases UML con la soluci&oacute;n completa (ambos ejercicios integrados).</li>
+<li>Indique el patr&oacute;n de dise&ntilde;o utilizado, incluyendo los roles que cumplen sus clases siguiendo las definiciones de Gamma et. al. Explique cu&aacute;l es el <b>m&eacute;todo plantilla</b>, cu&aacute;les los <b>pasos primitivos</b> y cu&aacute;l el <b>m&eacute;todo gancho (hook)</b>.</li>
+<li>Implemente en Java la funcionalidad completa. Incluya los constructores. Implemente solamente los accessors que necesite.</li>
+<li>Codifique un ejemplo de instanciaci&oacute;n: cree un env&iacute;o de cada tipo (est&aacute;ndar, express e internacional) y muestre el costo total de cada uno.</li>
+</ol>
+</body>
+</html>

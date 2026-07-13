@@ -1,0 +1,42 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Catalogo - Composite
+interface ItemCatalogo {
+  +getNombre(): String
+  +getDescripcion(): String
+  +getPrecioBase(): double
+  +perteneceA(c: Categoria): boolean
+  +validar(): void
+}
+class Producto {
+  -sku: SKU
+  -nombre: String
+  -marca: String
+  -categoria: Categoria
+  -precio: double
+  -descuentoPromocional: double
+  -atributos: Map<String,Object>
+  +getPrecioBase(): double
+  +agregarAtributo(clave, valor)
+  +requerirAtributo(clave)
+  +getAtributo(clave): Object
+  +validar(): void
+}
+class Paquete {
+  -nombre: String
+  -descripcion: String
+  -descuento: double
+  +agregar(item: ItemCatalogo)
+  +getPrecioBase(): double
+}
+class Catalogo {
+  +agregar(item: ItemCatalogo)
+  +buscar(criterio: Criterio): List<ItemCatalogo>
+}
+ItemCatalogo <|.. Producto
+ItemCatalogo <|.. Paquete
+Paquete "1" o-- "*" ItemCatalogo : items
+Catalogo "1" o-- "*" ItemCatalogo
+@enduml

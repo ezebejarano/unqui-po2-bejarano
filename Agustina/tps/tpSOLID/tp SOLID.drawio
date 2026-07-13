@@ -1,0 +1,148 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="nU7IdVaFrdrxgn_gxKLj">
+    <mxGraphModel dx="1227" dy="620" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-6" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Banco" vertex="1">
+          <mxGeometry height="100" width="360" x="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-24" edge="1" parent="Ha2u4g1cONFas1CfyW4n-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="52.999999999999886" as="sourcePoint" />
+            <mxPoint x="910" y="52.999999999999886" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-28" connectable="0" parent="oh_TZxCGcrjqIIW7_2S3-24" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="clientes" vertex="1">
+          <mxGeometry relative="1" x="-0.7853" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-8" parent="Ha2u4g1cONFas1CfyW4n-6" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-9" parent="Ha2u4g1cONFas1CfyW4n-6" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ &lt;b&gt;new Banco()&lt;/b&gt;&lt;/div&gt;+registrarCliente(Cliente c):&lt;div&gt;+registrarSolicitudDeCredito(SolicitudDeCredito sc):&lt;/div&gt;&lt;div&gt;+montoTotalADesembolsar():Double&lt;/div&gt;" vertex="1">
+          <mxGeometry height="66" width="360" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-10" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;i&gt;solicitudDeCredito&lt;/i&gt;&lt;div&gt;&lt;i&gt;&lt;br&gt;&lt;/i&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="190" width="430" x="470" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-11" parent="Ha2u4g1cONFas1CfyW4n-10" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- nombre: Cliente&lt;div&gt;- montoSolicitado: Double&lt;/div&gt;&lt;div&gt;- plazoMeses: int&lt;/div&gt;" vertex="1">
+          <mxGeometry height="54" width="430" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-12" parent="Ha2u4g1cONFas1CfyW4n-10" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="430" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-13" parent="Ha2u4g1cONFas1CfyW4n-10" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ &lt;b&gt;new SolicitudDeCredito(Cliente nombre, Double montoSolicitud, int plazoMeses)&lt;/b&gt;&lt;/div&gt;+ valorCuota():Double&lt;div&gt;+ &lt;i&gt;esAceptable(): boolean&lt;/i&gt;&lt;/div&gt;&lt;div&gt;+ &lt;i&gt;montoCuotaMenorMensual():&lt;/i&gt;&amp;nbsp;boolean&amp;nbsp;&lt;/div&gt;&lt;div&gt;+ getMontoSolicitado() Double&lt;/div&gt;" vertex="1">
+          <mxGeometry height="102" width="430" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-28" edge="1" parent="1" source="Ha2u4g1cONFas1CfyW4n-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;endSize=13;exitX=0.5;exitY=0;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="420" />
+              <mxPoint x="510" y="390" />
+              <mxPoint x="600" y="390" />
+              <mxPoint x="600" y="370" />
+              <mxPoint x="648" y="370" />
+            </Array>
+            <mxPoint x="316.1700000000001" y="394.72" as="sourcePoint" />
+            <mxPoint x="648" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-31" connectable="0" parent="Ha2u4g1cONFas1CfyW4n-28" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Extends" vertex="1">
+          <mxGeometry relative="1" x="-0.4444" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-14" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="SolicitudDeCreditoHipotecario&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="206" width="530" x="180" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-15" parent="Ha2u4g1cONFas1CfyW4n-14" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;- PropiedadInmobiliaria:&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="54" width="530" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-16" parent="Ha2u4g1cONFas1CfyW4n-14" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="530" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-17" parent="Ha2u4g1cONFas1CfyW4n-14" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ &lt;b&gt;new SolicitudDeCreditoHipotecario(Cliente nombre, Double montoSolicitud, int plazoMeses, PropiedadInmobiliaria propiedad)&lt;/b&gt;&lt;/div&gt;+ montoCuotaMenorMensual(): boolean&lt;div&gt;+ montoTotalSolicitadoNoMayor(): boolean&amp;nbsp;&lt;/div&gt;&lt;div&gt;+ edadLimite(): boolean&amp;nbsp;&lt;/div&gt;&lt;div&gt;+ esAceptable(): boolean&lt;/div&gt;" vertex="1">
+          <mxGeometry height="118" width="530" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-29" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;endSize=15;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="410" />
+              <mxPoint x="880" y="410" />
+              <mxPoint x="880" y="360" />
+              <mxPoint x="770" y="360" />
+            </Array>
+            <mxPoint x="910" y="440" as="sourcePoint" />
+            <mxPoint x="770" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-30" connectable="0" parent="Ha2u4g1cONFas1CfyW4n-29" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Extends&amp;nbsp;" vertex="1">
+          <mxGeometry relative="1" x="-0.55" y="-9" as="geometry">
+            <mxPoint x="-3" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-43" edge="1" parent="1" source="Ha2u4g1cONFas1CfyW4n-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=open;endFill=0;" target="Ha2u4g1cONFas1CfyW4n-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-44" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="solicitudesDeCredito" vertex="1">
+          <mxGeometry height="30" width="60" x="480" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="Ha2u4g1cONFas1CfyW4n-46" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="*" vertex="1">
+          <mxGeometry height="30" width="60" x="580" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-13" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Cliente" vertex="1">
+          <mxGeometry height="210" width="520" x="950" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-14" parent="oh_TZxCGcrjqIIW7_2S3-13" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;- nombre: String&amp;nbsp;&lt;/div&gt;&lt;div&gt;- apellido:String&lt;/div&gt;&lt;div&gt;- direccion: String&amp;nbsp;&lt;/div&gt;&lt;div&gt;- edad: int&amp;nbsp;&lt;/div&gt;&lt;div&gt;- sueldoNetoMensual: Double&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="84" width="520" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-15" parent="oh_TZxCGcrjqIIW7_2S3-13" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="520" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-16" parent="oh_TZxCGcrjqIIW7_2S3-13" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ &lt;b&gt;new Cliente(String nombre, String direccion, int edad, Double sueldoNetoMensual)&lt;/b&gt;&lt;/div&gt;+ sueldoNetoAnual(): Double&amp;nbsp;&lt;div&gt;+ getNombreCompleto():&lt;/div&gt;&lt;div&gt;+ getEdad(): int&amp;nbsp;&lt;/div&gt;&lt;div&gt;+ getSueldoNetoMensual(): Double&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="92" width="520" y="118" as="geometry" />
+        </mxCell>
+        <mxCell id="oh_TZxCGcrjqIIW7_2S3-25" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="N" vertex="1">
+          <mxGeometry height="30" width="60" x="370" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-5" edge="1" parent="1" source="Ha2u4g1cONFas1CfyW4n-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.782;entryDx=0;entryDy=0;entryPerimeter=0;" target="oh_TZxCGcrjqIIW7_2S3-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-6" edge="1" parent="1" source="Ha2u4g1cONFas1CfyW4n-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="640" />
+              <mxPoint x="380" y="640" />
+              <mxPoint x="380" y="650" />
+              <mxPoint x="410" y="650" />
+            </Array>
+            <mxPoint x="410" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-7" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;PropiedadInmobiliaria&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="530" x="170" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-8" parent="zGFjC3pbsZusueUxUZX2-7" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;- descripcion: String&amp;nbsp;&lt;/div&gt;&lt;div&gt;- direccion : String&amp;nbsp;&lt;/div&gt;&lt;div&gt;- valorFiscal: Double&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="54" width="530" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-9" parent="zGFjC3pbsZusueUxUZX2-7" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="530" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-10" parent="zGFjC3pbsZusueUxUZX2-7" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ &lt;b&gt;new PropiedadInmobiliaria(String descripcion, String direccion, Double valorFiscal)&lt;/b&gt;&lt;div&gt;&lt;b&gt;+ getValorFiscal(): Double&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="42" width="530" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-11" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;PropiedadInmobiliaria&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="610" x="750" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-13" parent="zGFjC3pbsZusueUxUZX2-11" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="610" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="zGFjC3pbsZusueUxUZX2-14" parent="zGFjC3pbsZusueUxUZX2-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ &lt;b&gt;new SolicitudDeCreditoPersonal(Cliente cliente, Double montoSoclicitado, int plazoMeses)&lt;/b&gt;&lt;div&gt;&lt;b&gt;+ esAceptable(): boolean&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;+ montoCuotaMensual(): boolean&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="66" width="610" y="34" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

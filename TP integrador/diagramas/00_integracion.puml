@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Integracion - Pedido como nucleo del sistema
+class Pedido
+interface EstadoPedido <<State>>
+interface MetodoEnvio <<Strategy>>
+abstract MetodoPago <<TemplateMethod>>
+interface ObservadorPedido <<Observer>>
+class LineaPedido
+interface ItemCatalogo <<Composite>>
+class Inventario
+class Catalogo
+interface Criterio <<Specification>>
+abstract Reporte <<Visitor>>
+
+Pedido "1" o-- "1" EstadoPedido : estadoActual
+Pedido "1" o-- "1" MetodoEnvio
+Pedido "1" o-- "0..1" MetodoPago
+Pedido "1" o-- "*" ObservadorPedido
+Pedido "1" *-- "*" LineaPedido
+LineaPedido --> ItemCatalogo
+Pedido ..> Inventario : decrementa/repone
+Catalogo "1" o-- "*" ItemCatalogo
+Catalogo ..> Criterio : buscar(c)
+Reporte ..> ItemCatalogo : recolecta ventas
+@enduml

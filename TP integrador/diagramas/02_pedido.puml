@@ -1,0 +1,60 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Ciclo de vida del Pedido - State
+class Pedido {
+  -lineas: List<LineaPedido>
+  -estado: EstadoPedido
+  -notasCredito: List<NotaCredito>
+  +agregarItem(item, cant)
+  +quitarItem(item)
+  +confirmar()
+  +cancelar()
+  +prepararEnvio()
+  +enviar()
+  +entregar()
+  +cambiarEstado(nuevo: EstadoPedido)
+  +totalConEnvio(): double
+}
+interface EstadoPedido {
+  +agregarItem(p, item, cant)
+  +confirmar(p: Pedido)
+  +cancelar(p: Pedido)
+  +prepararEnvio(p: Pedido)
+  +enviar(p: Pedido)
+  +entregar(p: Pedido)
+  +nombre(): String
+}
+abstract EstadoBase {
+  ' lanza OperacionInvalidaException por defecto
+}
+class Borrador
+class Confirmado
+class EnPreparacion
+class Enviado
+class Entregado
+class Cancelado
+class LineaPedido {
+  -item: ItemCatalogo
+  -cantidad: int
+  +subtotal(): double
+}
+class NotaCredito {
+  -monto: double
+  -motivo: String
+}
+class OperacionInvalidaException
+
+EstadoPedido <|.. EstadoBase
+EstadoBase <|-- Borrador
+EstadoBase <|-- Confirmado
+EstadoBase <|-- EnPreparacion
+EstadoBase <|-- Enviado
+EstadoBase <|-- Entregado
+EstadoBase <|-- Cancelado
+Pedido "1" o-- "1" EstadoPedido
+Pedido "1" *-- "*" LineaPedido
+Pedido "1" *-- "*" NotaCredito
+EstadoBase ..> OperacionInvalidaException : lanza
+@enduml

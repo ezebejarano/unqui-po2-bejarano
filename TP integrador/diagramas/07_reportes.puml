@@ -1,0 +1,47 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Reportes - Visitor
+abstract Reporte {
+  +generar(): List<ElementoReporte>
+  +exportar(v: VisitanteFormato): String
+}
+class ReporteProductosMasVendidos
+interface ElementoReporte {
+  +aceptar(v: VisitanteFormato): void
+}
+class Encabezado
+class Fila {
+  -item: ItemCatalogo
+  -unidadesVendidas: int
+  -precioPromedio: double
+}
+class Pie
+interface VisitanteFormato {
+  +visitarEncabezado(e: Encabezado)
+  +visitarFila(f: Fila)
+  +visitarPie(p: Pie)
+  +resultado(): String
+}
+class VisitanteTexto
+class VisitanteCSV
+class VisitanteHTML
+class RegistroVenta {
+  -item: ItemCatalogo
+  -cantidad: int
+  -precioCobrado: double
+  -fecha: LocalDate
+}
+
+Reporte <|-- ReporteProductosMasVendidos
+ElementoReporte <|.. Encabezado
+ElementoReporte <|.. Fila
+ElementoReporte <|.. Pie
+VisitanteFormato <|.. VisitanteTexto
+VisitanteFormato <|.. VisitanteCSV
+VisitanteFormato <|.. VisitanteHTML
+Reporte "1" o-- "*" ElementoReporte
+ElementoReporte ..> VisitanteFormato : aceptar(v)
+ReporteProductosMasVendidos ..> RegistroVenta
+@enduml

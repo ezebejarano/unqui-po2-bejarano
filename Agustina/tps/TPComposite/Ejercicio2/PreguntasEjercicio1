@@ -1,0 +1,31 @@
+2) que impacto genera en el diseño el hecho de compartir instancias de parcelas entre composiciones?
+Es decir, que la misma instancia se encuentre en más de una composición.
+
+*De Árbol a Grafo: El Composite está diseñado para ser un árbol (cada hijo tiene un solo padre). Al compartir,
+la estructura se vuelve un Grafo Acíclico Dirigido (DAG).
+ Efectos Colaterales: Si una parcela compartida se modifica, el cambio impacta en todas las composiciones a la vez.
+
+3. Describa las alternativas que puede utilizar para calcular la ganancia anual.
+Relacione las alternativas.
+
+*Recursión Distribuida (la que usaste): Cada clase resuelve su parte. Es la esencia del Composite y mantiene el encapsulamiento.
+ Patrón Visitor: Un objeto externo recorre la estructura y hace el cálculo.
+ Relación: La recursión es mejor para operaciones fijas; el Visitor es mejor si querés agregar nuevos cálculos
+ (como impuestos o riego) sin tocar el código de las parcelas.
+
+
+4. Explique la discusión sobre quiénes deben implementar las operaciones de agregado y borrado de hijos.
+
+*Transparencia (en la interfaz Parcela): Todos los objetos tienen add/remove. Es uniforme pero poco seguro
+(podrías intentar agregarle un hijo a una Soja).
+ Seguridad (solo en ParcelaMixta): Los métodos de gestión están solo en el compuesto. Evita errores en tiempo de compilación,
+ pero el cliente pierde la uniformidad y debe preguntar qué tipo de objeto tiene antes de operar.
+
+
+5. Sobre su implementación, indique los roles que desempeñan cada una de las clases diseñadas en relación al patrón Composite.
+
+*Componente (Parcela): La interfaz que define el contrato común para que hojas y compuestos sean tratados igual.
+ Hoja (Soja y Trigo): Objetos simples que no tienen hijos y devuelven el valor directo ($500 o $300).
+ Compuesto (ParcelaMixta): El contenedor que almacena la lista de 4 regiones y promedia los resultados de sus hijos.
+
+ Cliente: El código que arma el campo y pide la ganancia sin saber si la parcela es pura o mixta.

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="670" viewBox="0 0 940 670" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="940" height="670" fill="#ffffff"/>
+  <text x="470" y="34" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">Diagrama de clases UML — TP Strategy (Encriptación)</text>
+
+  <!-- ===== Referencias / leyenda ===== -->
+  <g font-size="12" fill="#333">
+    <rect x="28" y="92" width="262" height="86" fill="#fafafa" stroke="#cccccc"/>
+    <text x="40" y="112" font-weight="bold" font-size="12.5">Referencias</text>
+    <polygon points="46,128 56,135 46,142 36,135" fill="#ffffff" stroke="#333" stroke-width="1.3"/>
+    <line x1="56" y1="135" x2="84" y2="135" stroke="#333" stroke-width="1.3"/>
+    <text x="92" y="139">agregación ("tiene una")</text>
+    <polygon points="46,154 38,164 54,164" fill="#ffffff" stroke="#333" stroke-width="1.3"/>
+    <line x1="46" y1="164" x2="84" y2="164" stroke="#333" stroke-width="1.3" stroke-dasharray="5,3"/>
+    <text x="92" y="168">realización ("implementa")</text>
+  </g>
+
+  <!-- ===== Context: EncriptadorNaive ===== -->
+  <text x="624" y="86" font-size="12" font-style="italic" fill="#777">«Context»</text>
+  <rect x="320" y="70" width="300" height="172" fill="#e8f0fe" stroke="#3367d6" stroke-width="2"/>
+  <line x1="320" y1="102" x2="620" y2="102" stroke="#3367d6" stroke-width="1.5"/>
+  <line x1="320" y1="136" x2="620" y2="136" stroke="#3367d6" stroke-width="1.5"/>
+  <text x="470" y="93" text-anchor="middle" font-size="15" font-weight="bold">EncriptadorNaive</text>
+  <text x="332" y="125" font-size="13">- forma : FormaDeEncriptacion</text>
+  <text x="332" y="159" font-size="12.5">+ EncriptadorNaive(FormaDeEncriptacion)</text>
+  <text x="332" y="181" font-size="12.5">+ setForma(FormaDeEncriptacion) : void</text>
+  <text x="332" y="203" font-size="12.5">+ encriptar(String) : String</text>
+  <text x="332" y="225" font-size="12.5">+ desencriptar(String) : String</text>
+
+  <!-- ===== Aggregation EncriptadorNaive o--> FormaDeEncriptacion ===== -->
+  <polygon points="470,242 482,257 470,272 458,257" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <line x1="470" y1="272" x2="470" y2="320" stroke="#333" stroke-width="1.5"/>
+  <text x="478" y="300" font-size="12" fill="#333" font-style="italic">-forma</text>
+
+  <!-- ===== Strategy interface ===== -->
+  <rect x="320" y="320" width="300" height="112" fill="#fff7e0" stroke="#e8a200" stroke-width="2"/>
+  <line x1="320" y1="378" x2="620" y2="378" stroke="#e8a200" stroke-width="1.5"/>
+  <text x="470" y="342" text-anchor="middle" font-size="12" font-style="italic" fill="#555">«interface»</text>
+  <text x="470" y="364" text-anchor="middle" font-size="15" font-weight="bold">FormaDeEncriptacion</text>
+  <text x="332" y="400" font-size="12.5">+ encriptar(String) : String</text>
+  <text x="332" y="422" font-size="12.5">+ desencriptar(String) : String</text>
+
+  <!-- ===== Realization tree (dashed + hollow triangle) ===== -->
+  <polygon points="470,432 460,450 480,450" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+  <line x1="470" y1="450" x2="470" y2="478" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="170" y1="478" x2="770" y2="478" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="170" y1="478" x2="170" y2="520" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="470" y1="478" x2="470" y2="520" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="770" y1="478" x2="770" y2="520" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- ===== ConcreteStrategy: OrdenPalabras ===== -->
+  <rect x="40" y="520" width="260" height="100" fill="#e6f4ea" stroke="#1e8e3e" stroke-width="2"/>
+  <line x1="40" y1="552" x2="300" y2="552" stroke="#1e8e3e" stroke-width="1.5"/>
+  <text x="170" y="543" text-anchor="middle" font-size="14" font-weight="bold">OrdenPalabras</text>
+  <text x="52" y="576" font-size="12">+ encriptar(String) : String</text>
+  <text x="52" y="598" font-size="12">+ desencriptar(String) : String</text>
+  <text x="170" y="638" text-anchor="middle" font-size="11" font-style="italic" fill="#666">invierte el orden de las palabras</text>
+
+  <!-- ===== ConcreteStrategy: VocalSiguiente ===== -->
+  <rect x="340" y="520" width="260" height="100" fill="#e6f4ea" stroke="#1e8e3e" stroke-width="2"/>
+  <line x1="340" y1="552" x2="600" y2="552" stroke="#1e8e3e" stroke-width="1.5"/>
+  <text x="470" y="543" text-anchor="middle" font-size="14" font-weight="bold">VocalSiguiente</text>
+  <text x="352" y="576" font-size="12">+ encriptar(String) : String</text>
+  <text x="352" y="598" font-size="12">+ desencriptar(String) : String</text>
+  <text x="470" y="638" text-anchor="middle" font-size="11" font-style="italic" fill="#666">a→e, e→i, i→o, o→u, u→a</text>
+
+  <!-- ===== ConcreteStrategy: LetraANumero ===== -->
+  <rect x="640" y="520" width="260" height="100" fill="#e6f4ea" stroke="#1e8e3e" stroke-width="2"/>
+  <line x1="640" y1="552" x2="900" y2="552" stroke="#1e8e3e" stroke-width="1.5"/>
+  <text x="770" y="543" text-anchor="middle" font-size="14" font-weight="bold">LetraANumero</text>
+  <text x="652" y="576" font-size="12">+ encriptar(String) : String</text>
+  <text x="652" y="598" font-size="12">+ desencriptar(String) : String</text>
+  <text x="770" y="638" text-anchor="middle" font-size="11" font-style="italic" fill="#666">a=1 … z=26, espacio=0</text>
+</svg>

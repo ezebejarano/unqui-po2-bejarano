@@ -1,0 +1,43 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Busqueda en el catalogo - Composite + Specification
+interface Criterio {
+  +satisface(item: ItemCatalogo): boolean
+}
+class CriterioNombre {
+  -texto: String
+}
+class CriterioPrecioMaximo {
+  -maximo: double
+}
+class CriterioCategoria {
+  -categoria: Categoria
+}
+class CriterioDisponibilidad {
+  -inventario: Inventario
+}
+class CriterioY {
+  -criterios: List<Criterio>
+}
+class CriterioO {
+  -criterios: List<Criterio>
+}
+class CriterioNo {
+  -criterio: Criterio
+}
+class Catalogo
+
+Criterio <|.. CriterioNombre
+Criterio <|.. CriterioPrecioMaximo
+Criterio <|.. CriterioCategoria
+Criterio <|.. CriterioDisponibilidad
+Criterio <|.. CriterioY
+Criterio <|.. CriterioO
+Criterio <|.. CriterioNo
+CriterioY "1" o-- "*" Criterio
+CriterioO "1" o-- "*" Criterio
+CriterioNo "1" o-- "1" Criterio
+Catalogo ..> Criterio : buscar(c)
+@enduml

@@ -1,0 +1,49 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+body{font-family:Georgia,'Times New Roman',serif; font-size:13px; line-height:1.5; width:780px; margin:24px; color:#111;}
+h1{text-align:center; font-size:16px; margin:0;}
+h2{text-align:center; font-size:14px; margin:2px 0 18px 0; font-weight:normal;}
+h3{font-size:14px; margin:16px 0 6px 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:12px; background:#f4f4f4; border:1px solid #ccc; padding:6px;}
+ul{margin:4px 0;}
+.tag{text-align:center; color:#555; font-size:12px; margin-bottom:10px;}
+</style>
+</head>
+<body>
+<h1>Programaci&oacute;n con Objetos 2 &mdash; UNQ</h1>
+<h2>Parcial de pr&aacute;ctica N&deg;2 &middot; Parte pr&aacute;ctica</h2>
+<div class="tag">(Empresa de telefon&iacute;a m&oacute;vil &mdash; para practicar Strategy + Composite)</div>
+
+<h3>Ejercicio 1</h3>
+<p>Una empresa de telefon&iacute;a m&oacute;vil administra <b>l&iacute;neas</b>. De cada l&iacute;nea se conoce el n&uacute;mero, el titular, la <b>categor&iacute;a de cliente</b> y los <b>minutos consumidos</b> en el mes.</p>
+<p>Cada l&iacute;nea tiene asociado su propio <b>plan de facturaci&oacute;n</b>, que debe poder <b>cambiarse de forma din&aacute;mica en tiempo de ejecuci&oacute;n</b> y el sistema debe permitir incorporar planes nuevos en el futuro de manera flexible. Los dos planes disponibles inicialmente son:</p>
+<ul>
+<li><b>Plan Prepago:</b> no tiene cargo fijo. Se paga $8 por cada minuto consumido.</li>
+<li><b>Plan Pospago por Tramos:</b> tiene un cargo fijo mensual de $2000. Los primeros 500 minutos est&aacute;n incluidos (sin costo adicional); cada minuto que <b>exceda</b> los 500 se cobra $5.</li>
+</ul>
+<p>Para el c&aacute;lculo del costo final de una l&iacute;nea se aplica un <b>descuento por fidelidad</b>. Para ello se dispone de la siguiente interfaz externa, la cual puede utilizar y <b>no debe implementar</b>:</p>
+<pre>public interface ProgramaFidelidad {
+    // Devuelve el porcentaje de descuento (ej: 0.10 para un 10%) segun la
+    // categoria del cliente. Si la categoria no tiene beneficio, devuelve 0.
+    public float obtenerDescuento(CategoriaCliente categoria);
+}</pre>
+<p><b>Regla de c&aacute;lculo:</b> el costo final de una l&iacute;nea se determina calculando primero el valor bruto seg&uacute;n su plan configurado y, sobre ese valor, se aplica el porcentaje de descuento obtenido desde la interfaz ProgramaFidelidad utilizando la categor&iacute;a de la l&iacute;nea.</p>
+
+<h3>Ejercicio 2</h3>
+<p>Para organizar a sus clientes empresariales, la compa&ntilde;&iacute;a permite agrupar las l&iacute;neas en <b>Cuentas Corporativas</b> (por ejemplo, una cuenta para una empresa, que a su vez contiene sub-cuentas para diferentes sucursales, y finalmente l&iacute;neas individuales). Cada Cuenta Corporativa tiene un nombre.</p>
+<p>Se debe poder calcular el <b>costo total</b> y el <b>total de minutos consumidos</b> de cualquier estructura de forma homog&eacute;nea, independientemente de su naturaleza, de la siguiente manera:</p>
+<ul>
+<li><b>L&iacute;nea individual:</b> los minutos son los que consumi&oacute; textualmente; el costo se calcula seg&uacute;n lo definido en el Ejercicio 1.</li>
+<li><b>Cuenta Corporativa:</b> el total de minutos es la sumatoria de los minutos de los elementos que contiene. El costo total es la sumatoria del costo de todos sus elementos (l&iacute;neas y sub-cuentas), m&aacute;s un <b>cargo fijo administrativo</b> propio de esa cuenta, m&aacute;s un <b>2% de recargo</b> sobre la suma de sus elementos por gastos de gesti&oacute;n.</li>
+</ul>
+
+<h3>Actividades</h3>
+<ol>
+<li>Genere un diagrama de clases UML con las soluciones completas e integradas de ambos ejercicios.</li>
+<li>Indique los patrones de dise&ntilde;o utilizados, incluyendo los roles que cumplen sus clases siguiendo las definiciones de Gamma et. al.</li>
+<li>Implemente en Java la funcionalidad completa para resolver todos los requerimientos y las clases necesarias. Incluya los constructores. Implemente solamente los accessors que necesite.</li>
+<li>Codifique un ejemplo de instanciaci&oacute;n de su modelo: una cuenta corporativa que tiene una l&iacute;nea y una sub-cuenta, la cual a su vez tiene dos l&iacute;neas. Configure algunas l&iacute;neas con plan prepago y otras con pospago. Muestre c&oacute;mo pide el c&aacute;lculo tanto del total de minutos como del costo total de la cuenta.</li>
+</ol>
+</body>
+</html>

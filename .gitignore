@@ -1,0 +1,14 @@
+# --- IDE / build artifacts ---
+.metadata/
+.idea/
+*.iml
+**/bin/
+**/*.class
+.claude/
+
+# --- Repo grupal (tiene su propio repositorio en GitHub) ---
+Bejarano-Fux-Gulo-TpIntegradorPO2/
+
+# --- Sistema ---
+Thumbs.db
+.DS_Store

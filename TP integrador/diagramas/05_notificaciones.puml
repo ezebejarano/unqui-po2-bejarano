@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+hide empty members
+skinparam classFontSize 12
+title Notificaciones del pedido - Observer
+class Pedido <<Subject>>
+interface ObservadorPedido {
+  +actualizar(p: Pedido, anterior: EstadoPedido, nuevo: EstadoPedido)
+}
+class NotificadorEmail {
+  ' solo CONFIRMADO, ENVIADO, ENTREGADO
+}
+class GeneradorFactura {
+  ' solo ENTREGADO
+}
+class Fidelizacion {
+  ' al CANCELADO: cupon 5%
+}
+interface MailSender <<library>> {
+  +enviarMail(destino, titulo, mensaje, adjunto)
+}
+class Factura
+class Cupon
+
+ObservadorPedido <|.. NotificadorEmail
+ObservadorPedido <|.. GeneradorFactura
+ObservadorPedido <|.. Fidelizacion
+Pedido "1" o-- "*" ObservadorPedido
+NotificadorEmail ..> MailSender : usa
+Fidelizacion ..> MailSender : usa
+GeneradorFactura ..> Factura
+Fidelizacion ..> Cupon
+@enduml
