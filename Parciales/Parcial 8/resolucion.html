@@ -1,0 +1,184 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 8 — Aeropuerto (ciudad inteligente)</h1>
+<div class="tag">OBSERVER + ADAPTER · Parcial 5 de Junio de 2023</div>
+
+<h2>Enunciado (resumen)</h2>
+<p><b>Ej. 1 (Observer).</b> Un <b>aeropuerto</b> registra incidencias climáticas: si está <b>operativo</b> o, si no, la <b>razón</b> (niebla, fuertes lluvias, u otros problemas: falta de energía, paros), y los <b>vuelos</b> que despegan o aterrizan. <b>Agentes externos</b> (medios, apps móviles, etc.) deben poder ser notificados. Interfaz provista para el que quiera ser comunicado:</p>
+<pre>public interface AirportStatus {
+    void airportStatusOK();                            void airportClosed(String reason);
+    void airportClosedWeahter(WeatherEvent reason);    void departFlight(String flightNumber, LocalDate time);
+                                                       void arriveFlight(String flightNumber, LocalDate time);
+}</pre>
+<p>Los agentes se registran <b>a los eventos en general</b>, o sólo a <b>las condiciones del aeropuerto</b>, o sólo a <b>ciertos vuelos</b> (a ninguno = a todos; a uno; o a varios). Deben poder <b>anular la registración</b>. <b>Importante: nadie debe recibir notificaciones que no le interesan.</b></p>
+<p><b>Ej. 2 (Adapter).</b> Otra empresa ya tiene una app móvil que implementa <b>otra interfaz</b>. Hay que hacer que reciba las notificaciones del Ej. 1 <b>sin modificar la interfaz <code>Aeropuertos</code></b> ni <b>la implementación del Ej. 1</b>.</p>
+<pre>public interface Aeropuertos {
+    void estadoOK();                                   void aeropuertoCerrado(String reason);
+    void aeroCerradoPorClima(WeatherEvent reason);     void vueloDespegando(String flightNumber, LocalDate time);
+                                                       void vueloAterrizando(String flightNumber, LocalDate time);
+}</pre>
+<p><b>Tareas:</b> 1) UML conjunto de los ejercicios 1 y 2 · 2) código Java completo · 3) patrones y roles (Gamma).</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 3 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Aeropuerto</td><td><b>Subject</b> (Observable): listas de observadores, suscribir/desuscribir, notificar. <b>No conoce la clase concreta</b> de sus observadores.</td></tr>
+<tr><td>AirportStatus</td><td><b>Observer</b> — y a la vez <b>Target</b> del Adapter (es lo que el Aeropuerto sabe notificar).</td></tr>
+<tr><td>MedioDeComunicacion</td><td><b>ConcreteObserver</b>.</td></tr>
+<tr><td>AeropuertosAdapter</td><td><b>Adapter</b>: implementa el Target y <b>traduce</b> cada llamada al protocolo del Adaptee.</td></tr>
+<tr><td>Aeropuertos (y la app de la empresa)</td><td><b>Adaptee</b>: interfaz existente e incompatible. <b>No se toca.</b></td></tr>
+</table>
+
+<div class="ojo"><b>Clave del Ej. 2:</b> el Adapter <b>ES un ConcreteObserver</b>. Por eso el Aeropuerto lo suscribe como a cualquier otro y la app ajena recibe todo con <b>su propio protocolo</b>, sin tocar nada. <b>Clave del Ej. 1:</b> "que nadie reciba avisos que no le interesan" obliga a <b>separar las listas</b> (estado / por vuelo / todos los vuelos); una sola lista para todo <b>no cumple</b> el enunciado.</div>
+
+<h2>Actividad 2 — Código Java</h2>
+<pre>
+import java.time.LocalDate;
+import java.util.*;
+
+enum WeatherEvent { NIEBLA, LLUVIAS_FUERTES }
+
+// ================= EJ. 1 - OBSERVER =================
+interface AirportStatus {                            // Rol: OBSERVER (y TARGET del adapter)
+    void airportStatusOK();
+    void airportClosedWeahter(WeatherEvent reason);
+    void airportClosed(String reason);
+    void departFlight(String flightNumber, LocalDate time);
+    void arriveFlight(String flightNumber, LocalDate time);
+}
+
+class Aeropuerto {                                   // Rol: SUBJECT
+    private String nombre;
+    private List&lt;AirportStatus&gt; observadoresDelEstado = new ArrayList&lt;&gt;();          // condiciones del aero
+    private Map&lt;String, List&lt;AirportStatus&gt;&gt; observadoresPorVuelo = new HashMap&lt;&gt;(); // "AR1234" -> [..]
+    private List&lt;AirportStatus&gt; observadoresDeTodosLosVuelos = new ArrayList&lt;&gt;();    // los que no eligieron
+
+    public Aeropuerto(String nombre) { this.nombre = nombre; }
+
+    // --- registracion ---
+    public void registrar(AirportStatus o) {                                 // "a los eventos en general"
+        registrarEnEstado(o);
+        if (!observadoresDeTodosLosVuelos.contains(o)) { observadoresDeTodosLosVuelos.add(o); }
+    }
+    public void registrarEnEstado(AirportStatus o) {                         // solo condiciones
+        if (!observadoresDelEstado.contains(o)) { observadoresDelEstado.add(o); }
+    }
+    public void registrarEnVuelo(AirportStatus o, String flightNumber) {     // solo ese vuelo
+        observadoresPorVuelo.computeIfAbsent(flightNumber, v -&gt; new ArrayList&lt;&gt;()).add(o);
+    }
+    public void desregistrar(AirportStatus o) {
+        observadoresDelEstado.remove(o);
+        observadoresDeTodosLosVuelos.remove(o);
+        observadoresPorVuelo.values().forEach(lista -&gt; lista.remove(o));
+    }
+    public void desregistrarDeVuelo(AirportStatus o, String flightNumber) {
+        observadoresPorVuelo.getOrDefault(flightNumber, new ArrayList&lt;&gt;()).remove(o);
+    }
+
+    // --- eventos: cada uno notifica SOLO a los interesados ---
+    public void estaOperativo() {
+        observadoresDelEstado.forEach(AirportStatus::airportStatusOK);
+    }
+    public void cerrarPorClima(WeatherEvent razon) {
+        observadoresDelEstado.forEach(o -&gt; o.airportClosedWeahter(razon));
+    }
+    public void cerrarPorOtraRazon(String razon) {                     // energia, paros, etc.
+        observadoresDelEstado.forEach(o -&gt; o.airportClosed(razon));
+    }
+    public void despegar(String flightNumber, LocalDate time) {
+        interesadosEn(flightNumber).forEach(o -&gt; o.departFlight(flightNumber, time));
+    }
+    public void aterrizar(String flightNumber, LocalDate time) {
+        interesadosEn(flightNumber).forEach(o -&gt; o.arriveFlight(flightNumber, time));
+    }
+    // los de ESE vuelo + los de todos los vuelos (Set: no notificar dos veces al que esta en ambas)
+    private Set&lt;AirportStatus&gt; interesadosEn(String flightNumber) {
+        Set&lt;AirportStatus&gt; interesados = new HashSet&lt;&gt;(observadoresDeTodosLosVuelos);
+        interesados.addAll(observadoresPorVuelo.getOrDefault(flightNumber, new ArrayList&lt;&gt;()));
+        return interesados;
+    }
+}
+
+class MedioDeComunicacion implements AirportStatus {    // Rol: CONCRETE OBSERVER
+    private String nombre;
+    public MedioDeComunicacion(String nombre) { this.nombre = nombre; }
+    public void airportStatusOK()                    { print("aeropuerto operativo"); }
+    public void airportClosedWeahter(WeatherEvent r) { print("cerrado por clima (" + r + ")"); }
+    public void airportClosed(String r)              { print("cerrado (" + r + ")"); }
+    public void departFlight(String n, LocalDate t)  { print("despego " + n + " el " + t); }
+    public void arriveFlight(String n, LocalDate t)  { print("aterrizo " + n + " el " + t); }
+    private void print(String msg) { System.out.println(nombre + ": " + msg); }
+}
+
+// ================= EJ. 2 - ADAPTER =================
+interface Aeropuertos {                              // Rol: ADAPTEE (la interfaz de la OTRA empresa)
+    void estadoOK();
+    void aeroCerradoPorClima(WeatherEvent reason);
+    void aeropuertoCerrado(String reason);
+    void vueloDespegando(String flightNumber, LocalDate time);
+    void vueloAterrizando(String flightNumber, LocalDate time);
+}
+
+class AppMovilDeLaEmpresa implements Aeropuertos {   // clase ya existente: NO se toca
+    public void estadoOK()                              { System.out.println("[APP] Todo OK"); }
+    public void aeroCerradoPorClima(WeatherEvent r)     { System.out.println("[APP] Clima: " + r); }
+    public void aeropuertoCerrado(String r)             { System.out.println("[APP] Cerrado: " + r); }
+    public void vueloDespegando(String n, LocalDate t)  { System.out.println("[APP] Despega " + n); }
+    public void vueloAterrizando(String n, LocalDate t) { System.out.println("[APP] Aterriza " + n); }
+}
+
+class AeropuertosAdapter implements AirportStatus {  // Rol: ADAPTER (implementa el TARGET...)
+    private Aeropuertos adaptado;                    // ...y delega en el ADAPTEE traduciendo
+    public AeropuertosAdapter(Aeropuertos adaptado) { this.adaptado = adaptado; }
+
+    public void airportStatusOK()                    { adaptado.estadoOK(); }
+    public void airportClosedWeahter(WeatherEvent r) { adaptado.aeroCerradoPorClima(r); }
+    public void airportClosed(String r)              { adaptado.aeropuertoCerrado(r); }
+    public void departFlight(String n, LocalDate t)  { adaptado.vueloDespegando(n, t); }
+    public void arriveFlight(String n, LocalDate t)  { adaptado.vueloAterrizando(n, t); }
+}
+</pre>
+
+<h2>Demo — comportamiento verificado</h2>
+<pre>
+Aeropuerto aeropuerto = new Aeropuerto("Quilmes Intl.");
+
+MedioDeComunicacion diario = new MedioDeComunicacion("Diario");
+aeropuerto.registrar(diario);                                  // a TODO (estado + todos los vuelos)
+
+MedioDeComunicacion pasajero = new MedioDeComunicacion("Pasajero");
+aeropuerto.registrarEnVuelo(pasajero, "AR1234");               // SOLO al vuelo AR1234
+
+AirportStatus appAdaptada = new AeropuertosAdapter(new AppMovilDeLaEmpresa());   // el ADAPTER
+aeropuerto.registrar(appAdaptada);                             // entra como un observer mas
+
+aeropuerto.cerrarPorClima(WeatherEvent.NIEBLA);   // -> Diario y APP.  El Pasajero NO (no le interesa)
+aeropuerto.despegar("AR1234", hoy);               // -> Diario, APP y Pasajero
+aeropuerto.despegar("LA9999", hoy);               // -> Diario y APP.  El Pasajero NO (otro vuelo)
+aeropuerto.desregistrar(diario);
+aeropuerto.estaOperativo();                       // -> solo la APP
+</pre>
+
+</body>
+</html>

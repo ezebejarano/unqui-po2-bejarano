@@ -1,0 +1,94 @@
+@startuml
+title Parcial 7 - Supermercado (State + Strategy)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class Supermercado <<Context>> {
+  + mejorClienteFidelizado() : Cliente
+  + cambiarEstrategiaPremio(EstrategiaPremio)
+  + agregarCliente(Cliente)
+}
+
+interface EstrategiaPremio <<Strategy>> {
+  + elegirGanador(List<Cliente>) : Cliente
+}
+class PremioPorMonto <<ConcreteStrategy>> {
+  + elegirGanador(List<Cliente>) : Cliente
+}
+class PremioPorCantidadDeCompras <<ConcreteStrategy>> {
+  + elegirGanador(List<Cliente>) : Cliente
+}
+
+class Cliente <<Context>> {
+  - nombre : String
+  - mail : String
+  + comprar(fecha, monto, medioDePago)
+  + cambiarPeriodo(Periodo)
+  + estaFidelizado() : boolean
+  + montoTotalGastado() : double
+  + cantidadDeCompras() : int
+  + ultimaCompra() : Compra
+}
+
+class Compra {
+  - fecha : LocalDate
+  - montoOriginal : double
+  - montoFinal : double
+  - medioDePago : MedioDePago
+}
+
+enum MedioDePago {
+  DEBITO
+  CREDITO
+  EFECTIVO
+}
+
+interface Periodo <<State>> {
+  + registrarCompra(Cliente, Compra)
+  + estaFidelizado() : boolean
+}
+
+class PeriodoBienvenida <<ConcreteState>> {
+  15% off en las primeras 10 compras
+}
+class PeriodoConsolidacion <<ConcreteState>> {
+  - cuponesRestantes : int = 3
+  40% off si la compra supera $50.000
+}
+class PeriodoFidelizado <<ConcreteState>> {
+  100%, sin descuento
+  manda mail si compro el dia anterior
+}
+
+interface MailSender <<externa>> {
+  + enviarMail(destinatario, titulo, cuerpo)
+}
+
+Supermercado o--> "*" Cliente
+Supermercado o--> "1" EstrategiaPremio
+EstrategiaPremio <|.. PremioPorMonto
+EstrategiaPremio <|.. PremioPorCantidadDeCompras
+
+Cliente o--> "1" Periodo : periodo actual
+Cliente o--> "*" Compra
+Cliente ..> MailSender : usa
+Compra --> MedioDePago
+
+Periodo <|.. PeriodoBienvenida
+Periodo <|.. PeriodoConsolidacion
+Periodo <|.. PeriodoFidelizado
+
+PeriodoBienvenida ..> PeriodoConsolidacion : a la 10ma compra\nnew PeriodoConsolidacion()
+PeriodoConsolidacion ..> PeriodoFidelizado : al 3er cupon\nnew PeriodoFidelizado()
+
+note bottom of Periodo
+  El cliente NO elige su periodo:
+  las fases se disparan solas
+  (por eso es State, no Strategy)
+end note
+@enduml

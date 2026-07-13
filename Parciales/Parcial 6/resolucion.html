@@ -1,0 +1,180 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 6 — Empresa de Ingeniería</h1>
+<div class="tag">COMPOSITE + STRATEGY · 1er Sem. 2022 — 2da Fecha</div>
+
+<h2>Enunciado (resumen)</h2>
+<p>Empresa de ingeniería civil que trabaja a partir de <b>actividades</b>. Las elementales son <b>Transporte</b> y <b>Obra</b>.</p>
+<ul>
+<li><b>Transporte</b> (distancia, peso, precio por kilo y km): costo = <b>distancia × peso × precio</b>.</li>
+<li><b>Obra</b> = <b>materiales</b> (cantidad, precio unitario) + <b>operarios</b> (horas, valor hora, antigüedad).
+  <ul>
+  <li>Materiales, según <b>forma de pago</b>: <b>efectivo</b> = suma · <b>MercadoPago</b> en 1 pago = <b>−3%</b> · <b>tarjeta en cuotas</b> = <b>+4% por cada cuota</b>.</li>
+  <li>La forma de pago la decide el <b>gerente</b>, es <b>la misma para todos los proyectos</b> y <b>puede cambiarla en cualquier momento</b>.</li>
+  <li>Operario: horas × valor hora, <b>+10% si antigüedad &gt; 5 años</b>.</li>
+  </ul>
+</li>
+<li><b>Proyecto</b>: agrupa transportes, obras y <b>otros proyectos</b>. Costo = suma de lo que contiene <b>+ 20% de gestión</b>.</li>
+<li>La <b>empresa</b> (razón social, CUIT) tiene <b>una única actividad actual</b> y se le puede pedir el costo a afrontar.</li>
+</ul>
+<p><b>Tareas:</b> 1) UML · 2) patrones y roles · 3) código Java · 4) instanciar "Apsis Ingeniería S.A" (CUIT 30-123456-0): un proyecto con (a) una obra con un albañil y ladrillos, y (b) otro proyecto con un transporte y una obra.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 2 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Actividad</td><td><b>Component</b>: el tipo común. Permite que un Proyecto guarde en la misma lista transportes, obras y otros proyectos.</td></tr>
+<tr><td>Transporte, Obra</td><td><b>Leaf</b>.</td></tr>
+<tr><td>Proyecto</td><td><b>Composite</b>: <code>List&lt;Actividad&gt;</code>, suma recursiva + 20%.</td></tr>
+<tr><td>EstrategiaFormaPago</td><td><b>Strategy</b>.</td></tr>
+<tr><td>PagoEfectivo, PagoMercadoPago, PagoTarjetaCredito</td><td><b>ConcreteStrategy</b>.</td></tr>
+<tr><td>EmpresaIngenieria</td><td><b>Context</b> (Strategy): guarda la forma de pago y la cambia en runtime. Además, <b>cliente</b> del Composite.</td></tr>
+</table>
+
+<div class="ojo"><b>Clave del ejercicio:</b> la forma de pago es <b>una sola para toda la empresa</b>, así que <b>NO</b> la guarda cada Obra: vive en la <b>Empresa</b> y <b>viaja como parámetro</b> al recorrer el árbol → <code>costo(EstrategiaFormaPago)</code>. Cambiarla es una sola asignación y aplica a todo. El <b>Transporte ignora</b> el parámetro (su costo no depende del pago). La Strategy ajusta <b>sólo los materiales</b>, no los operarios.</div>
+
+<h2>Actividad 3 — Código Java</h2>
+<pre>
+import java.util.*;
+
+// ================= STRATEGY (forma de pago de los materiales) =================
+interface EstrategiaFormaPago {                           // Rol: STRATEGY
+    double ajustarPrecio(double montoEnEfectivo);
+}
+class PagoEfectivo implements EstrategiaFormaPago {       // Rol: CONCRETE STRATEGY
+    public double ajustarPrecio(double monto) { return monto; }
+}
+class PagoMercadoPago implements EstrategiaFormaPago {    // Rol: CONCRETE STRATEGY
+    public double ajustarPrecio(double monto) { return monto * 0.97; }                 // -3%
+}
+class PagoTarjetaCredito implements EstrategiaFormaPago { // Rol: CONCRETE STRATEGY
+    private int cuotas;
+    public PagoTarjetaCredito(int cuotas) { this.cuotas = cuotas; }
+    public double ajustarPrecio(double monto) { return monto * (1 + 0.04 * cuotas); }  // +4% x cuota
+}
+
+// ================= COMPOSITE (actividades) =================
+interface Actividad {                                     // Rol: COMPONENT
+    double costo(EstrategiaFormaPago formaDePago);        // la strategy VIAJA por el arbol
+}
+
+class Transporte implements Actividad {                   // Rol: LEAF
+    private double distancia, peso, precio;
+    public Transporte(double distancia, double peso, double precio) {
+        this.distancia=distancia; this.peso=peso; this.precio=precio;
+    }
+    public double costo(EstrategiaFormaPago fp) { return distancia * peso * precio; }  // ignora fp
+}
+
+class Obra implements Actividad {                         // Rol: LEAF
+    private List&lt;Material&gt; materiales = new ArrayList&lt;&gt;();
+    private List&lt;Operario&gt; operarios  = new ArrayList&lt;&gt;();
+    public void agregarMaterial(Material m) { materiales.add(m); }
+    public void agregarOperario(Operario o) { operarios.add(o); }
+
+    public double costo(EstrategiaFormaPago fp) {
+        return fp.ajustarPrecio(costoMateriales()) + costoOperarios();  // la strategy solo toca materiales
+    }
+    private double costoMateriales() { return materiales.stream().mapToDouble(Material::subtotal).sum(); }
+    private double costoOperarios()  { return operarios.stream().mapToDouble(Operario::costo).sum(); }
+}
+
+class Proyecto implements Actividad {                     // Rol: COMPOSITE
+    private String nombre;
+    private List&lt;Actividad&gt; actividades = new ArrayList&lt;&gt;();
+    public Proyecto(String nombre) { this.nombre = nombre; }
+    public void agregarActividad(Actividad a)  { actividades.add(a); }
+    public void eliminarActividad(Actividad a) { actividades.remove(a); }
+
+    public double costo(EstrategiaFormaPago fp) {
+        double total = 0;
+        for (Actividad actividad : actividades) { total += actividad.costo(fp); }  // recursivo
+        return total * 1.20;                                                       // +20% de gestion
+    }
+}
+
+// ================= DOMINIO =================
+class Material {
+    private int cantidad; private double precioUnitario;
+    public Material(int cantidad, double precioUnitario) { this.cantidad=cantidad; this.precioUnitario=precioUnitario; }
+    public double subtotal() { return cantidad * precioUnitario; }
+}
+class Operario {
+    private double horas, valorHora; private int antiguedad;
+    public Operario(double horas, double valorHora, int antiguedad) {
+        this.horas=horas; this.valorHora=valorHora; this.antiguedad=antiguedad;
+    }
+    public double costo() {
+        double base = horas * valorHora;
+        return antiguedad &gt; 5 ? base * 1.10 : base;       // +10% si antiguedad > 5
+    }
+}
+
+// ================= CONTEXT =================
+class EmpresaIngenieria {                                 // Rol: CONTEXT + cliente del Composite
+    private String razonSocial, cuit;
+    private Actividad actividadActual;                    // tipada con el COMPONENT
+    private EstrategiaFormaPago formaDePago;              // tipada con la STRATEGY
+
+    public EmpresaIngenieria(String razonSocial, String cuit, Actividad actividadActual,
+                             EstrategiaFormaPago formaDePago) {
+        this.razonSocial=razonSocial; this.cuit=cuit;
+        this.actividadActual=actividadActual; this.formaDePago=formaDePago;
+    }
+    public void setFormaDePago(EstrategiaFormaPago fp) { this.formaDePago = fp; }  // cambio en runtime
+    public double costoAAfrontar() { return actividadActual.costo(formaDePago); }
+}
+</pre>
+
+<h2>Actividad 4 — Instanciación (cuentas verificadas)</h2>
+<pre>
+// (a) obra que solo emplea un albanil y ladrillos
+Obra obraLadrillos = new Obra();
+obraLadrillos.agregarMaterial(new Material(1000, 150));      // 150.000
+obraLadrillos.agregarOperario(new Operario(80, 2500, 7));    // 200.000 +10% = 220.000  => 370.000
+
+// (b) sub-proyecto: un transporte y una obra
+Transporte transporte = new Transporte(120, 500, 3);         // 180.000
+Obra obraInterna = new Obra();
+obraInterna.agregarMaterial(new Material(50, 8000));         // 400.000
+obraInterna.agregarOperario(new Operario(100, 3000, 2));     // 300.000 (sin extra) => 700.000
+Proyecto subProyecto = new Proyecto("Ampliacion");
+subProyecto.agregarActividad(transporte);
+subProyecto.agregarActividad(obraInterna);                   // (180.000+700.000)*1,20 = 1.056.000
+
+Proyecto proyectoPrincipal = new Proyecto("Obra Central");
+proyectoPrincipal.agregarActividad(obraLadrillos);
+proyectoPrincipal.agregarActividad(subProyecto);             // (370.000+1.056.000)*1,20 = 1.711.200
+
+EmpresaIngenieria apsis = new EmpresaIngenieria(
+        "Apsis Ingenieria S.A", "30-123456-0", proyectoPrincipal, new PagoEfectivo());
+
+apsis.costoAAfrontar();                          // 1.711.200,00
+apsis.setFormaDePago(new PagoMercadoPago());     // el gerente cambia la decision
+apsis.costoAAfrontar();                          // 1.688.520,00
+apsis.setFormaDePago(new PagoTarjetaCredito(6));
+apsis.costoAAfrontar();                          // 1.892.640,00
+</pre>
+
+</body>
+</html>

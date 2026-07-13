@@ -1,0 +1,214 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 9 — Logger</h1>
+<div class="tag">OBSERVER + STRATEGY · Parcial Junio 2024</div>
+
+<h2>Enunciado (resumen)</h2>
+<p>Un <b>Logger</b> recibe mensajes (texto + <b>severidad</b>) desde cualquier parte del sistema y los <b>retransmite</b> a los <b>sistemas de escucha</b> registrados. Severidades <b>ordenadas</b>: TRACE &lt; DEBUG &lt; INFO &lt; WARN &lt; ERROR &lt; FATAL.</p>
+<p>El Logger debe: 1) <b>recibir un mensaje</b> (texto + severidad) y <b>notificar a todos</b> los registrados · 2) <b>registrar</b> un sistema de escucha · 3) <b>desregistrarlo</b>.</p>
+<p>Cada <b>sistema de escucha</b> tiene <b>un único monitor</b> (ya implementado) y una <b>regla de publicación</b>:</p>
+<ul>
+<li><b>Verbose</b>: muestra <b>todos</b> los mensajes en <b>GRAY</b>; al llegar a <b>100</b> mensajes envía un email con el texto de todos, vía <code>IEmailClient</code>.</li>
+<li><b>Producción</b>: configurable con una <b>lista de severidades</b>; sólo publica los mensajes de esa lista.</li>
+</ul>
+<p>Una misma regla puede estar <b>configurada distinto</b> en distintos sistemas. <b>Importante:</b> los sistemas deben poder <b>cambiar su regla en ejecución</b> y deben poder definirse <b>reglas nuevas</b>.</p>
+<pre>public interface IMonitor { void printScreen(String msg, String color);   // usar, NO implementar
+    String BLUE="Blue"; String YELLOW="Yellow"; String RED="Red"; String GRAY="Gray"; }
+public interface IEmailClient { void sendEmail(String to, String subject, String text); }   // idem</pre>
+<p><b>Tareas:</b> 1) UML · 2) código Java completo · 3) clase <code>EjemploParcial</code> con <code>configurar()</code>: un logger, dos sistemas (uno verbose, otro producción para ERROR y FATAL), y luego cambiarle a este último la regla a verbose · 4) test: el Logger notifica correctamente.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Logger</td><td><b>Subject</b>: lista de escuchas, registrar/desregistrar/notificar. No sabe qué hace cada uno con el mensaje.</td></tr>
+<tr><td>SistemaDeEscucha</td><td><b>ConcreteObserver</b> (reacciona al mensaje) <b>y Context</b> del Strategy (guarda su regla y le delega).</td></tr>
+<tr><td>EstrategiaRegla</td><td><b>Strategy</b>.</td></tr>
+<tr><td>ReglaVerbose, ReglaProduccion</td><td><b>ConcreteStrategy</b>. <b>Cada instancia</b> tiene su config (los niveles, el contador) → una misma regla puede estar configurada distinto en dos sistemas.</td></tr>
+<tr><td>IMonitor, IEmailClient</td><td>Interfaces externas (usar, no implementar).</td></tr>
+</table>
+
+<div class="ojo"><b>Por qué la regla recibe el <code>SistemaDeEscucha</code> por parámetro:</b> necesita llegar al <b>monitor de ese sistema</b> para imprimir. Pasándole el context (<code>publicar(msg, sev, sistema)</code>), la regla no queda acoplada a un monitor fijo. <b>El orden de las severidades</b> sale gratis del <code>enum</code> (el orden de declaración; se compara con <code>compareTo</code>).</div>
+
+<h2>Actividad 2 — Código Java</h2>
+<pre>
+import java.util.*;
+
+enum Severidad { TRACE, DEBUG, INFO, WARN, ERROR, FATAL }   // el ORDEN de declaracion ES el orden
+
+// ================= INTERFACES EXTERNAS (usar, no implementar) =================
+interface IMonitor {
+    void printScreen(String msg, String color);
+    String BLUE = "Blue"; String YELLOW = "Yellow"; String RED = "Red"; String GRAY = "Gray";
+}
+interface IEmailClient { void sendEmail(String to, String subject, String text); }
+
+// ================= OBSERVER =================
+class Logger {                                       // Rol: SUBJECT
+    private List&lt;SistemaDeEscucha&gt; sistemas = new ArrayList&lt;&gt;();
+
+    public void registrar(SistemaDeEscucha s)    { sistemas.add(s); }
+    public void desregistrar(SistemaDeEscucha s) { sistemas.remove(s); }
+
+    public void log(String mensaje, Severidad severidad) {          // (1) recibir -> notificar a todos
+        for (SistemaDeEscucha sistema : sistemas) {
+            sistema.recibirMensaje(mensaje, severidad);
+        }
+    }
+}
+
+class SistemaDeEscucha {                             // Rol: CONCRETE OBSERVER + CONTEXT (Strategy)
+    private IMonitor monitor;                        // su UNICO monitor
+    private EstrategiaRegla regla;                   // tipada con la INTERFAZ
+
+    public SistemaDeEscucha(IMonitor monitor, EstrategiaRegla regla) {
+        this.monitor = monitor; this.regla = regla;
+    }
+    public void cambiarRegla(EstrategiaRegla regla) { this.regla = regla; }   // cambio en RUNTIME
+
+    public void recibirMensaje(String mensaje, Severidad severidad) {
+        regla.publicar(mensaje, severidad, this);    // DELEGA en su regla
+    }
+    public IMonitor getMonitor() { return monitor; }
+}
+
+// ================= STRATEGY (reglas de publicacion) =================
+interface EstrategiaRegla {                          // Rol: STRATEGY
+    void publicar(String mensaje, Severidad severidad, SistemaDeEscucha sistema);
+}
+
+class ReglaVerbose implements EstrategiaRegla {      // Rol: CONCRETE STRATEGY
+    private List&lt;String&gt; mensajesEnviados = new ArrayList&lt;&gt;();
+    private IEmailClient emailClient; private String destinatario;
+
+    public ReglaVerbose(IEmailClient emailClient, String destinatario) {
+        this.emailClient = emailClient; this.destinatario = destinatario;
+    }
+    public void publicar(String mensaje, Severidad severidad, SistemaDeEscucha sistema) {
+        sistema.getMonitor().printScreen(mensaje, IMonitor.GRAY);       // TODOS, en gris
+        mensajesEnviados.add(mensaje);
+        if (mensajesEnviados.size() == 100) {                           // a los 100 -> mail
+            emailClient.sendEmail(destinatario, "Resumen del logger", String.join("\n", mensajesEnviados));
+            mensajesEnviados.clear();
+        }
+    }
+}
+
+class ReglaProduccion implements EstrategiaRegla {   // Rol: CONCRETE STRATEGY
+    private Set&lt;Severidad&gt; niveles;                  // SU configuracion (por instancia)
+
+    public ReglaProduccion(Severidad... niveles) { this.niveles = new HashSet&lt;&gt;(Arrays.asList(niveles)); }
+
+    public void publicar(String mensaje, Severidad severidad, SistemaDeEscucha sistema) {
+        if (niveles.contains(severidad)) {                              // si no esta: no publica nada
+            sistema.getMonitor().printScreen(mensaje, colorPara(severidad));
+        }
+    }
+    private String colorPara(Severidad s) {
+        if (s == Severidad.FATAL || s == Severidad.ERROR) { return IMonitor.RED; }
+        if (s == Severidad.WARN)                          { return IMonitor.YELLOW; }
+        return IMonitor.BLUE;
+    }
+}
+</pre>
+
+<h2>Actividad 3 — EjemploParcial (verificado)</h2>
+<pre>
+class EjemploParcial {
+    public void configurar() {
+        IMonitor monitorA = (msg, color) -&gt; System.out.println("[A/" + color + "] " + msg);
+        IMonitor monitorB = (msg, color) -&gt; System.out.println("[B/" + color + "] " + msg);
+        IEmailClient emailClient = (to, subject, text) -&gt; System.out.println("Mail a " + to);
+
+        Logger logger = new Logger();
+        SistemaDeEscucha sistemaVerbose =                                     // regla VERBOSE
+            new SistemaDeEscucha(monitorA, new ReglaVerbose(emailClient, "ops@empresa.com"));
+        SistemaDeEscucha sistemaProduccion =                                  // regla PRODUCCION
+            new SistemaDeEscucha(monitorB, new ReglaProduccion(Severidad.ERROR, Severidad.FATAL));
+
+        logger.registrar(sistemaVerbose);
+        logger.registrar(sistemaProduccion);
+
+        logger.log("Se cayo la base", Severidad.FATAL);   // [A/Gray] y [B/Red]   -> lo ven los dos
+        logger.log("Cargando modulo", Severidad.TRACE);   // [A/Gray]             -> solo el verbose
+
+        sistemaProduccion.cambiarRegla(new ReglaVerbose(emailClient, "ops@empresa.com"));  // en RUNTIME
+
+        logger.log("Cargando modulo", Severidad.TRACE);   // [A/Gray] y [B/Gray]  -> ahora lo ven los dos
+    }
+}
+</pre>
+
+<h2>Actividad 4 — Test de unidad</h2>
+<p>SUT = <code>Logger</code> (va real). El monitor se reemplaza por un <b>spy</b> y el email client por un <b>dummy</b> (se pasa para rellenar, no se usa).</p>
+<pre>
+class LoggerTest {
+    class MonitorSpy implements IMonitor {                    // SPY: registra lo que se imprimio
+        List&lt;String&gt; mensajes = new ArrayList&lt;&gt;();
+        List&lt;String&gt; colores  = new ArrayList&lt;&gt;();
+        public void printScreen(String msg, String color) { mensajes.add(msg); colores.add(color); }
+    }
+    private Logger logger;
+    private MonitorSpy monitorVerbose, monitorProduccion;
+    private SistemaDeEscucha sistemaVerbose, sistemaProduccion;
+
+    @BeforeEach                                               // SETUP
+    void setUp() {
+        logger = new Logger();
+        monitorVerbose = new MonitorSpy();  monitorProduccion = new MonitorSpy();
+        IEmailClient emailDummy = (to, subject, text) -&gt; { };            // DUMMY
+
+        sistemaVerbose    = new SistemaDeEscucha(monitorVerbose, new ReglaVerbose(emailDummy, "ops@x.com"));
+        sistemaProduccion = new SistemaDeEscucha(monitorProduccion,
+                                new ReglaProduccion(Severidad.ERROR, Severidad.FATAL));
+        logger.registrar(sistemaVerbose);
+        logger.registrar(sistemaProduccion);
+    }
+
+    @Test
+    void elLoggerNotificaATodosLosSistemasRegistrados() {
+        logger.log("Se cayo la base", Severidad.FATAL);                  // EXERCISE
+        assertEquals(1, monitorVerbose.mensajes.size());                 // VERIFY
+        assertEquals(IMonitor.GRAY, monitorVerbose.colores.get(0));
+        assertEquals(1, monitorProduccion.mensajes.size());
+        assertEquals(IMonitor.RED, monitorProduccion.colores.get(0));
+    }
+
+    @Test
+    void cadaSistemaFiltraSegunSuRegla() {
+        logger.log("Cargando modulo", Severidad.TRACE);
+        assertEquals(1, monitorVerbose.mensajes.size());      // verbose publica TODO
+        assertEquals(0, monitorProduccion.mensajes.size());   // produccion filtra TRACE
+    }
+
+    @Test
+    void unSistemaDesregistradoNoRecibeMasMensajes() {
+        logger.desregistrar(sistemaProduccion);
+        logger.log("Se cayo la base", Severidad.FATAL);
+        assertEquals(0, monitorProduccion.mensajes.size());
+    }
+}
+</pre>
+
+</body>
+</html>

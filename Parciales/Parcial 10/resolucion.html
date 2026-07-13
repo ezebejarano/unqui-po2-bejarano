@@ -1,0 +1,177 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 10 — Formatos textuales + API de redes sociales</h1>
+<div class="tag">TEMPLATE METHOD + STRATEGY + ADAPTER</div>
+
+<h2>Enunciado (resumen)</h2>
+<p><b>Ej. 1 (Adapter).</b> Una app de análisis de redes trabaja con la interfaz <code>ApiRedSocial</code>. Se quiere incorporar <b>Facebook</b>, que ofrece la clase <code>ApiFacebook</code>. Hacer el adaptador con <code>ApiRedSocial</code> como <b>target</b> y <code>ApiFacebook</code> como <b>adaptado</b>.</p>
+<pre>public interface ApiRedSocial {                  public class ApiFacebook {
+    List&lt;String&gt; seguidores(String userId);          List&lt;String&gt; friends(String facebookId) {...}
+    int posts(String userId);                        List&lt;String&gt; status(String facebookId) {...}
+}                                                }</pre>
+<p><b>IMPORTANTE: la adaptación debe ser completa: nombres, parámetros Y RETORNO.</b></p>
+<p><b>Ej. 2 (Formatos).</b> La clase <code>Documento</code> entiende <code>getFechaCreacion()</code>, <code>getTitulo()</code>, <code>getText()</code> y <code>getFirma()</code> (String cada uno). Se quieren <b>tres formatos</b> (LaTeX, HTML, texto simple). Los formateadores entienden <code>darFormato(Documento)</code> y devuelven un String.</p>
+<table>
+<tr><th>LATEX</th><th>HTML</th><th>Texto simple</th></tr>
+<tr>
+<td><pre>\date{2/3/13}
+\title{Marte}
+\begin{document}
+El hombre que visitó a Marte.
+\end{document}
+\footer{Roberto T.}</pre></td>
+<td><pre>&lt;title&gt;Marte&lt;/title&gt;
+&lt;body&gt;
+El hombre que visitó a Marte.
+&lt;/body&gt;
+&lt;footer&gt;Roberto T.&lt;/footer&gt;</pre></td>
+<td><pre>Fecha de Creación: 2/3/13
+Título: Marte
+Texto: El hombre que visitó a Marte.
+Pie: Roberto T.</pre></td>
+</tr>
+</table>
+<p><b>Tareas:</b> 1) UML · 2) código Java (adaptador + ejemplo de instanciación) · 3) patrones y roles.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 3 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Formateador</td><td><b>AbstractClass</b>: define <code>darFormato</code> (<b>método plantilla</b>, <code>final</code>) con la secuencia fija fecha → título → texto → firma, y declara los <b>pasos primitivos</b> abstractos.</td></tr>
+<tr><td>FormateadorLatex, FormateadorHTML, FormateadorTextoSimple</td><td><b>ConcreteClass</b>.</td></tr>
+<tr><td>Documento</td><td><b>Context</b> (Strategy): tiene un <code>Formateador</code> y le delega; lo cambia con <code>setFormateador</code>.</td></tr>
+<tr><td>ApiRedSocial</td><td><b>Target</b>.</td></tr>
+<tr><td>ApiFacebook</td><td><b>Adaptee</b> (existente, no se modifica).</td></tr>
+<tr><td>ApiFacebookAdapter</td><td><b>Adapter</b>.</td></tr>
+</table>
+
+<div class="ojo"><b>La trampa del "IMPORTANTE":</b> <code>posts</code> no es un renombre. <code>status(id)</code> devuelve <code>List&lt;String&gt;</code> y el target pide <code>int</code> → el adapter hace <b><code>.size()</code></b>. <b>Adaptar el retorno también es parte del Adapter.</b><br>
+<b>Por qué TM y no Strategy (formatos):</b> los tres hacen <b>los mismos pasos en el mismo orden</b> y sólo cambia el <i>cómo</i> → herencia. El <b>Strategy</b> aparece por otra razón: el <code>Documento</code> <b>tiene un</b> formateador y lo cambia en runtime → composición. Conviven.<br>
+<b>Ojo:</b> el formato <b>HTML no muestra la fecha</b> → ese paso devuelve <code>""</code>.</div>
+
+<h2>Actividad 2 — Código Java</h2>
+<pre>
+import java.util.*;
+
+// ================= EJ. 2 - TEMPLATE METHOD =================
+class Documento {                                   // Rol: CONTEXT (Strategy)
+    private String fechaCreacion, titulo, text, firma;
+    private Formateador formateador = new FormateadorTextoSimple();      // por defecto
+
+    public Documento(String fechaCreacion, String titulo, String text, String firma) {
+        this.fechaCreacion=fechaCreacion; this.titulo=titulo; this.text=text; this.firma=firma;
+    }
+    public String getFechaCreacion() { return fechaCreacion; }
+    public String getTitulo()        { return titulo; }
+    public String getText()          { return text; }
+    public String getFirma()         { return firma; }
+
+    public void setFormateador(Formateador f) { this.formateador = f; }  // cambio en RUNTIME
+    public String mostrar() { return formateador.darFormato(this); }     // DELEGA
+}
+
+abstract class Formateador {                        // Rol: ABSTRACT CLASS
+    // TEMPLATE METHOD: la secuencia. FINAL para que ninguna subclase la rompa.
+    public final String darFormato(Documento d) {
+        return formatearFecha(d) + formatearTitulo(d) + formatearTexto(d) + formatearFirma(d);
+    }
+    // PASOS PRIMITIVOS: cada formato los resuelve a su manera
+    protected abstract String formatearFecha(Documento d);
+    protected abstract String formatearTitulo(Documento d);
+    protected abstract String formatearTexto(Documento d);
+    protected abstract String formatearFirma(Documento d);
+}
+
+class FormateadorLatex extends Formateador {        // Rol: CONCRETE CLASS
+    protected String formatearFecha(Documento d)  { return "\\date{" + d.getFechaCreacion() + "}\n"; }
+    protected String formatearTitulo(Documento d) { return "\\title{" + d.getTitulo() + "}\n"; }
+    protected String formatearTexto(Documento d)  { return "\\begin{document}\n" + d.getText()
+                                                        + "\n\\end{document}\n"; }
+    protected String formatearFirma(Documento d)  { return "\\footer{" + d.getFirma() + "}"; }
+}
+
+class FormateadorHTML extends Formateador {         // Rol: CONCRETE CLASS
+    protected String formatearFecha(Documento d)  { return ""; }         // HTML NO muestra la fecha
+    protected String formatearTitulo(Documento d) { return "&lt;title&gt;" + d.getTitulo() + "&lt;/title&gt;\n"; }
+    protected String formatearTexto(Documento d)  { return "&lt;body&gt;\n" + d.getText() + "\n&lt;/body&gt;\n"; }
+    protected String formatearFirma(Documento d)  { return "&lt;footer&gt;" + d.getFirma() + "&lt;/footer&gt;"; }
+}
+
+class FormateadorTextoSimple extends Formateador {  // Rol: CONCRETE CLASS
+    protected String formatearFecha(Documento d)  { return "Fecha de Creacion: " + d.getFechaCreacion() + "\n"; }
+    protected String formatearTitulo(Documento d) { return "Titulo: " + d.getTitulo() + "\n"; }
+    protected String formatearTexto(Documento d)  { return "Texto: " + d.getText() + "\n"; }
+    protected String formatearFirma(Documento d)  { return "Pie: " + d.getFirma(); }
+}
+
+// ================= EJ. 1 - ADAPTER =================
+interface ApiRedSocial {                            // Rol: TARGET (lo que el cliente espera)
+    List&lt;String&gt; seguidores(String userId);
+    int posts(String userId);
+}
+
+class ApiFacebook {                                 // Rol: ADAPTEE (existente: NO se toca)
+    public List&lt;String&gt; friends(String facebookId) { return new ArrayList&lt;&gt;(); }
+    public List&lt;String&gt; status(String facebookId)  { return new ArrayList&lt;&gt;(); }
+}
+
+class ApiFacebookAdapter implements ApiRedSocial {  // Rol: ADAPTER
+    private ApiFacebook apiFacebook;
+    public ApiFacebookAdapter(ApiFacebook apiFacebook) { this.apiFacebook = apiFacebook; }
+
+    public List&lt;String&gt; seguidores(String userId) {
+        return apiFacebook.friends(userId);              // traduce NOMBRE y PARAMETRO
+    }
+    public int posts(String userId) {
+        return apiFacebook.status(userId).size();        // traduce el RETORNO: List -> int
+    }
+}
+
+class AppAnalisisRedesSociales {                    // CLIENT: trabaja SIEMPRE contra el target
+    private ApiRedSocial api;                       // tipada con la INTERFAZ
+    public AppAnalisisRedesSociales(ApiRedSocial api) { this.api = api; }
+    public boolean esInfluencer(String userId) {
+        return api.seguidores(userId).size() &gt; 10000 &amp;&amp; api.posts(userId) &gt; 100;
+    }
+}
+</pre>
+
+<h2>Ejemplo de instanciación (verificado)</h2>
+<pre>
+// --- Ej. 2: los tres formatos sobre el MISMO documento ---
+Documento doc = new Documento("2/3/13", "Marte", "El hombre que visito a Marte.", "Roberto T.");
+
+doc.setFormateador(new FormateadorLatex());        doc.mostrar();   // \date{2/3/13} \title{Marte} ...
+doc.setFormateador(new FormateadorHTML());         doc.mostrar();   // &lt;title&gt;Marte&lt;/title&gt; ... (sin fecha)
+doc.setFormateador(new FormateadorTextoSimple());  doc.mostrar();   // Fecha de Creacion: 2/3/13 ...
+
+// --- Ej. 1: el adaptador, instanciado en forma completa ---
+ApiFacebook apiFacebook = new ApiFacebook();                      // el ADAPTEE
+ApiRedSocial redSocial  = new ApiFacebookAdapter(apiFacebook);    // el ADAPTER, tipado con el TARGET
+AppAnalisisRedesSociales app = new AppAnalisisRedesSociales(redSocial);
+app.esInfluencer("usuario123");
+// La app NUNCA sabe que del otro lado hay un ApiFacebook.
+</pre>
+
+</body>
+</html>

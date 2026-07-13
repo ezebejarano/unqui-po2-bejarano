@@ -1,0 +1,87 @@
+@startuml
+title Parcial 11 - Ministerio de Planificacion (Composite + Adapter)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class MinisterioDePlanificacion <<Client>> {
+  + agregarSecretaria(Secretaria)
+  + montoTotalAInvertir() : double
+}
+
+interface Secretaria <<Target>> {
+  + montoTotal() : double
+}
+
+class SecretariaDeObrasPublicas {
+  - nombre : String
+  + agregarObra(Obra)
+  + montoTotal() : double\n  (suma de sus obras)
+}
+
+class SecretariaDeInfraestructuraAdapter <<Adapter>> {
+  + montoTotal() : double\n  -> secretaria.inversionTotal()
+}
+
+class SecretariaDeInfraestructura <<Adaptee>> {
+  (clase ya existente: no se modifica)
+  + inversionTotal() : double
+}
+
+abstract class Obra <<Component>> {
+  - nombre : String
+  - fechaDeInicio : LocalDate
+  - lider : Empleado
+  + {abstract} inversionTotal() : double
+  + getFechaDeInicio() : LocalDate
+}
+
+class Proyecto <<Leaf>> {
+  - duracionEnDias : int
+  + inversionTotal() : double\n  = sueldos * dias\n  + lider * dias * 1.30
+}
+
+class Programa <<Composite>> {
+  - costoFijoDeGestion : double
+  + agregarObra(Obra)
+  + eliminarObra(Obra)
+  + inversionTotal() : double\n  = costoFijo + SUMA(hijos)
+  + getFechaDeInicio() : LocalDate\n  = MIN(fechas de sus hijos)
+}
+
+interface Empleado {
+  + nombre() : String
+  + rol() : String
+  + sueldoDiario() : double
+}
+
+MinisterioDePlanificacion o--> "*" Secretaria
+Secretaria <|.. SecretariaDeObrasPublicas
+Secretaria <|.. SecretariaDeInfraestructuraAdapter
+SecretariaDeInfraestructuraAdapter o--> "1" SecretariaDeInfraestructura : adaptado
+
+SecretariaDeObrasPublicas o--> "*" Obra
+SecretariaDeInfraestructura o--> "*" Obra
+
+Obra <|-- Proyecto
+Obra <|-- Programa
+Programa o--> "*" Obra : obras
+Obra o--> "1" Empleado : lider
+Proyecto o--> "*" Empleado : empleados
+
+note right of Obra
+  Es clase ABSTRACTA (no interfaz)
+  porque tiene estado (nombre, fecha,
+  lider) y constructor
+end note
+
+note right of Programa
+  Recursion estructural:
+  un Programa contiene
+  otros Programas
+end note
+@enduml

@@ -1,0 +1,240 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 7 — Supermercado (promociones de compras)</h1>
+<div class="tag">STATE + STRATEGY · 1er Sem. 2023 — 2da Fecha</div>
+
+<h2>Enunciado (resumen)</h2>
+<p><b>Clientes</b> con sus <b>compras</b> (fecha, monto original, medio de pago: débito/crédito/efectivo, y <b>monto final</b> = el original con el descuento aplicado). Se deben poder obtener todas las compras de cada cliente.</p>
+<p>La fidelidad del cliente pasa por <b>3 fases</b>:</p>
+<ul>
+<li><b>Bienvenida</b>: <b>15% off</b> en las <b>primeras 10 compras</b>. Luego de la décima → <b>Consolidación</b>.</li>
+<li><b>Consolidación</b>: compras al 100%. Tiene <b>3 cupones del 40%</b>, que se aplican <b>automáticamente</b> en cada compra <b>&gt; $50.000</b>. Usado el 3er cupón → <b>Fidelizado</b>.</li>
+<li><b>Fidelizado</b>: todo al 100%, sin descuento. Al comprar, <b>si su última compra fue el día anterior</b>, se le manda un mail: título <i>"Gracias por elegirnos"</i>, cuerpo <i>"Gracias por permanecer con nosotros, es un orgullo tenerle como cliente"</i>.</li>
+</ul>
+<p>Interfaz provista (<b>no implementar</b>): <code>MailSender.enviarMail(String destinatario, String titulo, String cuerpo)</code>.</p>
+<p><b>Premios:</b> se regala una moto al <b>mejor cliente fidelizado</b>. "Mejor" = ① el que <b>más gastó</b> en su historia, o ② el que <b>más compras</b> hizo. Debe poder <b>cambiarse fácil y dinámicamente</b> y quedar <b>abierto (OCP)</b> a nuevos criterios.</p>
+<p><b>Tareas:</b> 1) UML · 2) patrones y roles · 3) código Java · 4) cómo se agrega un criterio nuevo · 5) test: en Fidelizado, con compra del día anterior, el mail se envía.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 2 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Cliente</td><td><b>Context</b> (State): guarda su período y le delega el registro de la compra. Sin ningún <code>if</code> sobre la fase.</td></tr>
+<tr><td>Periodo</td><td><b>State</b> (interfaz).</td></tr>
+<tr><td>PeriodoBienvenida, PeriodoConsolidacion, PeriodoFidelizado</td><td><b>ConcreteState</b>: calculan el monto final y <b>disparan la transición</b> (<code>cliente.cambiarPeriodo(new ...)</code>).</td></tr>
+<tr><td>EstrategiaPremio</td><td><b>Strategy</b>.</td></tr>
+<tr><td>PremioPorMonto, PremioPorCantidadDeCompras</td><td><b>ConcreteStrategy</b>.</td></tr>
+<tr><td>Supermercado</td><td><b>Context</b> (Strategy): <code>cambiarEstrategiaPremio</code>.</td></tr>
+<tr><td>MailSender</td><td>Interfaz externa (usar, no implementar).</td></tr>
+</table>
+
+<div class="ojo"><b>Por qué State y no Strategy para los períodos:</b> el cliente <b>no elige</b> su fase — se disparan solas al cumplirse una condición (la 10ª compra, el 3er cupón) y <b>un período instancia al siguiente</b>. El criterio de premio, en cambio, lo elige el supermercado <b>desde afuera</b> → Strategy. <b>Ojo:</b> el contador de <b>cupones vive en <code>PeriodoConsolidacion</code></b> (es SU dato, no del cliente), y el chequeo de "compró ayer" se hace <b>ANTES</b> de agregar la compra nueva.</div>
+
+<h2>Actividad 3 — Código Java</h2>
+<pre>
+import java.time.LocalDate;
+import java.util.*;
+
+enum MedioDePago { DEBITO, CREDITO, EFECTIVO }
+
+class Compra {
+    private LocalDate fecha; private double montoOriginal, montoFinal; private MedioDePago medioDePago;
+    public Compra(LocalDate fecha, double montoOriginal, MedioDePago medioDePago) {
+        this.fecha=fecha; this.montoOriginal=montoOriginal; this.montoFinal=montoOriginal; this.medioDePago=medioDePago;
+    }
+    public LocalDate getFecha()      { return fecha; }
+    public double getMontoOriginal() { return montoOriginal; }
+    public double getMontoFinal()    { return montoFinal; }
+    public void setMontoFinal(double m) { this.montoFinal = m; }
+}
+
+interface MailSender {                                    // INTERFAZ EXTERNA: usar, no implementar
+    void enviarMail(String mailDestinatario, String titulo, String cuerpo);
+}
+
+class Cliente {                                           // Rol: CONTEXT (State)
+    private String nombre, mail;
+    private List&lt;Compra&gt; compras = new ArrayList&lt;&gt;();
+    private Periodo periodo = new PeriodoBienvenida();    // fase inicial
+    private MailSender mailSender;
+
+    public Cliente(String nombre, String mail, MailSender mailSender) {
+        this.nombre=nombre; this.mail=mail; this.mailSender=mailSender;
+    }
+    public void comprar(LocalDate fecha, double monto, MedioDePago medioDePago) {
+        periodo.registrarCompra(this, new Compra(fecha, monto, medioDePago));   // DELEGA en el periodo
+    }
+    public void cambiarPeriodo(Periodo periodo) { this.periodo = periodo; }
+    public Periodo getPeriodo()     { return periodo; }
+    public boolean estaFidelizado() { return periodo.estaFidelizado(); }
+
+    // --- servicios que usan los periodos ---
+    public void agregarCompra(Compra compra) { compras.add(compra); }
+    public Compra ultimaCompra() { return compras.isEmpty() ? null : compras.get(compras.size()-1); }
+    public void enviarMail(String titulo, String cuerpo) { mailSender.enviarMail(mail, titulo, cuerpo); }
+
+    // --- consultas que usan las estrategias de premio ---
+    public int cantidadDeCompras()    { return compras.size(); }
+    public double montoTotalGastado() { return compras.stream().mapToDouble(Compra::getMontoFinal).sum(); }
+    public String getNombre()         { return nombre; }
+}
+
+// ================= STATE (periodos de fidelidad) =================
+interface Periodo {                                       // Rol: STATE
+    void registrarCompra(Cliente cliente, Compra compra);
+    boolean estaFidelizado();
+}
+
+class PeriodoBienvenida implements Periodo {              // Rol: CONCRETE STATE
+    public void registrarCompra(Cliente cliente, Compra compra) {
+        compra.setMontoFinal(compra.getMontoOriginal() * 0.85);        // 15% off
+        cliente.agregarCompra(compra);
+        if (cliente.cantidadDeCompras() &gt;= 10) {
+            cliente.cambiarPeriodo(new PeriodoConsolidacion());        // TRANSICION
+        }
+    }
+    public boolean estaFidelizado() { return false; }
+}
+
+class PeriodoConsolidacion implements Periodo {           // Rol: CONCRETE STATE
+    private int cuponesRestantes = 3;                     // el contador es del ESTADO, no del cliente
+    public void registrarCompra(Cliente cliente, Compra compra) {
+        if (cuponesRestantes &gt; 0 &amp;&amp; compra.getMontoOriginal() &gt; 50000) {
+            compra.setMontoFinal(compra.getMontoOriginal() * 0.60);    // 40% off
+            cuponesRestantes--;
+        } else {
+            compra.setMontoFinal(compra.getMontoOriginal());           // 100%
+        }
+        cliente.agregarCompra(compra);
+        if (cuponesRestantes == 0) {
+            cliente.cambiarPeriodo(new PeriodoFidelizado());           // TRANSICION
+        }
+    }
+    public boolean estaFidelizado() { return false; }
+}
+
+class PeriodoFidelizado implements Periodo {              // Rol: CONCRETE STATE (final)
+    public void registrarCompra(Cliente cliente, Compra compra) {
+        boolean comproAyer = comproElDiaAnterior(cliente, compra);     // se mira ANTES de agregar
+        compra.setMontoFinal(compra.getMontoOriginal());               // 100%, sin descuento
+        cliente.agregarCompra(compra);
+        if (comproAyer) {
+            cliente.enviarMail("Gracias por elegirnos",
+                "Gracias por permanecer con nosotros, es un orgullo tenerle como cliente");
+        }
+    }
+    private boolean comproElDiaAnterior(Cliente cliente, Compra compra) {
+        Compra ultima = cliente.ultimaCompra();
+        return ultima != null &amp;&amp; ultima.getFecha().equals(compra.getFecha().minusDays(1));
+    }
+    public boolean estaFidelizado() { return true; }
+}
+
+// ================= STRATEGY (criterio del premio) =================
+interface EstrategiaPremio {                              // Rol: STRATEGY
+    Cliente elegirGanador(List&lt;Cliente&gt; candidatos);
+}
+class PremioPorMonto implements EstrategiaPremio {        // Rol: CONCRETE STRATEGY
+    public Cliente elegirGanador(List&lt;Cliente&gt; candidatos) {
+        return candidatos.stream().max(Comparator.comparingDouble(Cliente::montoTotalGastado)).orElse(null);
+    }
+}
+class PremioPorCantidadDeCompras implements EstrategiaPremio {    // Rol: CONCRETE STRATEGY
+    public Cliente elegirGanador(List&lt;Cliente&gt; candidatos) {
+        return candidatos.stream().max(Comparator.comparingInt(Cliente::cantidadDeCompras)).orElse(null);
+    }
+}
+
+class Supermercado {                                      // Rol: CONTEXT (Strategy)
+    private List&lt;Cliente&gt; clientes = new ArrayList&lt;&gt;();
+    private EstrategiaPremio estrategiaPremio;            // tipada con la INTERFAZ
+    public Supermercado(EstrategiaPremio estrategiaPremio) { this.estrategiaPremio = estrategiaPremio; }
+    public void agregarCliente(Cliente cliente) { clientes.add(cliente); }
+    public void cambiarEstrategiaPremio(EstrategiaPremio e) { this.estrategiaPremio = e; }   // dinamico
+    public Cliente mejorClienteFidelizado() {
+        return estrategiaPremio.elegirGanador(
+            clientes.stream().filter(Cliente::estaFidelizado).toList());    // solo los fidelizados
+    }
+}
+</pre>
+
+<h2>Actividad 4 — Cómo se agrega un criterio nuevo (OCP)</h2>
+<p>Se crea <b>una clase nueva</b> que implemente <code>EstrategiaPremio</code> y se la pasa con <code>cambiarEstrategiaPremio(...)</code>. <b>No se toca ninguna clase existente</b> (ni <code>Supermercado</code> ni <code>Cliente</code>): abierto a la extensión, cerrado a la modificación.</p>
+<pre>
+class PremioPorCompraMasAlta implements EstrategiaPremio {    // clase NUEVA, nada mas
+    public Cliente elegirGanador(List&lt;Cliente&gt; candidatos) { ... }
+}
+supermercado.cambiarEstrategiaPremio(new PremioPorCompraMasAlta());
+</pre>
+
+<h2>Actividad 5 — Test de unidad</h2>
+<p>SUT = <code>Cliente</code> (va real). El <code>MailSender</code> se reemplaza por un <b>spy</b> (registra cómo fue llamado).</p>
+<pre>
+class ClienteFidelizadoTest {
+    class MailSenderSpy implements MailSender {            // SPY del colaborador externo
+        boolean seEnvio = false; String destinatario, titulo, cuerpo;
+        public void enviarMail(String d, String t, String c) {
+            seEnvio = true; destinatario = d; titulo = t; cuerpo = c;
+        }
+    }
+    private MailSenderSpy spy; private Cliente cliente;
+    private LocalDate ayer = LocalDate.of(2026,7,12), hoy = LocalDate.of(2026,7,13);
+
+    @BeforeEach                                            // SETUP
+    void setUp() {
+        spy = new MailSenderSpy();
+        cliente = new Cliente("Ana", "ana@mail.com", spy);
+        cliente.cambiarPeriodo(new PeriodoFidelizado());     // lo pongo en la fase a testear
+        cliente.comprar(ayer, 10000, MedioDePago.EFECTIVO);  // compra del dia anterior
+    }
+
+    @Test
+    void enFidelizadoConCompraDelDiaAnteriorSeEnviaElMail() {
+        cliente.comprar(hoy, 20000, MedioDePago.DEBITO);     // EXERCISE
+
+        assertTrue(spy.seEnvio);                                                // VERIFY
+        assertEquals("ana@mail.com", spy.destinatario);
+        assertEquals("Gracias por elegirnos", spy.titulo);
+        assertEquals(20000.0, cliente.ultimaCompra().getMontoFinal(), 0.001);   // 100%, sin descuento
+    }
+
+    @Test
+    void siLaUltimaCompraNoFueElDiaAnteriorNoSeEnviaElMail() {
+        cliente.comprar(hoy.plusDays(5), 20000, MedioDePago.DEBITO);
+        assertFalse(spy.seEnvio);
+    }
+}
+</pre>
+
+<h2>Comportamiento verificado</h2>
+<pre>
+10 compras de 1000  -> monto final 850 c/u (15% off)    | periodo: PeriodoConsolidacion
+compra de 1000      -> 1000 (100%: no supera los 50.000)
+3 compras de 60000  -> 36000 c/u (los 3 cupones)        | periodo: PeriodoFidelizado
+compra al dia siguiente de otra -> 5000 (sin descuento) + MAIL enviado
+compra NO consecutiva           -> sin mail
+premio por MONTO -> el de mayor gasto   |   por CANTIDAD -> el de mas compras
+</pre>
+
+</body>
+</html>

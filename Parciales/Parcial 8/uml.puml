@@ -1,0 +1,80 @@
+@startuml
+title Parcial 8 - Aeropuerto (Observer + Adapter)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class Aeropuerto <<Subject>> {
+  - observadoresDelEstado : List<AirportStatus>
+  - observadoresPorVuelo : Map<String, List<AirportStatus>>
+  - observadoresDeTodosLosVuelos : List<AirportStatus>
+  --
+  + registrar(AirportStatus)
+  + registrarEnEstado(AirportStatus)
+  + registrarEnVuelo(AirportStatus, flightNumber)
+  + desregistrar(AirportStatus)
+  + desregistrarDeVuelo(AirportStatus, flightNumber)
+  --
+  + estaOperativo()
+  + cerrarPorClima(WeatherEvent)
+  + cerrarPorOtraRazon(String)
+  + despegar(flightNumber, LocalDate)
+  + aterrizar(flightNumber, LocalDate)
+}
+
+interface AirportStatus <<Observer / Target>> {
+  + airportStatusOK()
+  + airportClosedWeahter(WeatherEvent)
+  + airportClosed(String)
+  + departFlight(String, LocalDate)
+  + arriveFlight(String, LocalDate)
+}
+
+class MedioDeComunicacion <<ConcreteObserver>> {
+  - nombre : String
+}
+
+class AeropuertosAdapter <<Adapter>> {
+  + airportStatusOK()\n  -> estadoOK()
+  + airportClosedWeahter(w)\n  -> aeroCerradoPorClima(w)
+  + airportClosed(r)\n  -> aeropuertoCerrado(r)
+  + departFlight(n, t)\n  -> vueloDespegando(n, t)
+  + arriveFlight(n, t)\n  -> vueloAterrizando(n, t)
+}
+
+interface Aeropuertos <<Adaptee>> {
+  + estadoOK()
+  + aeroCerradoPorClima(WeatherEvent)
+  + aeropuertoCerrado(String)
+  + vueloDespegando(String, LocalDate)
+  + vueloAterrizando(String, LocalDate)
+}
+
+class AppMovilDeLaEmpresa {
+  (clase ya existente:
+   no se modifica)
+}
+
+enum WeatherEvent {
+  NIEBLA
+  LLUVIAS_FUERTES
+}
+
+Aeropuerto o--> "*" AirportStatus : notifica
+AirportStatus <|.. MedioDeComunicacion
+AirportStatus <|.. AeropuertosAdapter
+AeropuertosAdapter o--> "1" Aeropuertos : adaptado
+Aeropuertos <|.. AppMovilDeLaEmpresa
+Aeropuerto ..> WeatherEvent
+
+note bottom of AeropuertosAdapter
+  El Adapter ES un Observer:
+  el Aeropuerto lo suscribe como
+  a cualquier otro, sin enterarse
+  de que del otro lado hay otra interfaz
+end note
+@enduml

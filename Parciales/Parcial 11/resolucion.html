@@ -1,0 +1,206 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7.5pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+.nota{background:#f0f0f0; border:1px solid #bbb; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 11 — Ministerio de Planificación (obras públicas)</h1>
+<div class="tag">COMPOSITE + ADAPTER</div>
+
+<p class="nota"><b>Nota:</b> el enunciado original está en PDF escaneado y no se pudo transcribir. Este texto está <b>reconstruido</b> a partir de la solución en Java y del UML de <i>parciales mas/parciales/secretaria</i>. Contrastalo con el PDF.</p>
+
+<h2>Enunciado (resumen, reconstruido)</h2>
+<p>El <b>Ministerio de Planificación</b> necesita el <b>monto total a invertir</b> por las <b>secretarías</b> que dependen de él. Toda secretaría entiende <code>montoTotal()</code>.</p>
+<p>Una de ellas gestiona <b>obras</b>. Toda obra tiene nombre, fecha de inicio y un empleado <b>líder</b>. Hay dos tipos:</p>
+<ul>
+<li><b>Proyecto</b> (obra elemental): <b>duración en días</b> + un conjunto de <b>empleados</b> (nombre, rol, <b>sueldo diario</b>). Inversión = suma de sueldos diarios × duración, <b>más el líder, que cobra un 30% extra</b>.</li>
+<li><b>Programa</b>: <b>agrupa</b> obras (proyectos <b>u otros programas</b>). Inversión = suma de sus obras <b>+ un costo fijo de gestión</b>. Su <b>fecha de inicio</b> es la <b>más temprana</b> de las de sus obras.</li>
+</ul>
+<p>Además ya existe la clase <b>SecretariaDeInfraestructura</b>, desarrollada por otro equipo, que sabe responder <code>inversionTotal()</code> y <b>no se puede modificar</b>. El Ministerio necesita pedirle su monto <b>igual que a las demás</b>.</p>
+<p><b>Tareas:</b> 1) UML · 2) patrones y roles · 3) código Java · 4) script de instanciación.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 2 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Obra</td><td><b>Component</b>. Es <b>clase abstracta</b> (no interfaz) porque tiene <b>estado</b> (nombre, fecha, líder) y <b>constructor</b>.</td></tr>
+<tr><td>Proyecto</td><td><b>Leaf</b>.</td></tr>
+<tr><td>Programa</td><td><b>Composite</b>: <code>List&lt;Obra&gt;</code>; suma recursiva + costo fijo, y su fecha = el <b>mínimo</b> de sus hijos.</td></tr>
+<tr><td>Secretaria</td><td><b>Target</b>: lo que el Ministerio sabe pedir.</td></tr>
+<tr><td>SecretariaDeInfraestructura</td><td><b>Adaptee</b>: existente, con otro protocolo. No se toca.</td></tr>
+<tr><td>SecretariaDeInfraestructuraAdapter</td><td><b>Adapter</b>: <code>montoTotal()</code> → <code>inversionTotal()</code>.</td></tr>
+<tr><td>MinisterioDePlanificacion</td><td><b>Client</b>: sólo conoce la interfaz <code>Secretaria</code>; no sabe cuál está adaptada.</td></tr>
+</table>
+
+<div class="ojo"><b>Ojo con la pregunta teórica que se cruza acá:</b> <i>"¿siempre puedo reemplazar una clase abstracta raíz por una interfaz?"</i> → <b>FALSO</b>, y <code>Obra</code> es el ejemplo: tiene <b>atributos de instancia y constructor</b>, y una interfaz no puede tener ninguna de las dos cosas.<br>
+<b>El Composite no sólo suma plata:</b> también sobrescribe <code>getFechaDeInicio()</code> devolviendo el <b>mínimo</b> de sus hijos. Un compuesto puede redefinir <b>cualquier</b> consulta, no sólo el total.</div>
+
+<h2>Actividad 3 — Código Java</h2>
+<pre>
+import java.time.LocalDate;
+import java.util.*;
+
+interface Empleado {
+    String nombre();
+    String rol();
+    double sueldoDiario();
+}
+
+class EmpleadoPublico implements Empleado {
+    private String nombre, rol; private double sueldoDiario;
+    public EmpleadoPublico(String nombre, String rol, double sueldoDiario) {
+        this.nombre=nombre; this.rol=rol; this.sueldoDiario=sueldoDiario;
+    }
+    public String nombre()       { return nombre; }
+    public String rol()          { return rol; }
+    public double sueldoDiario() { return sueldoDiario; }
+}
+
+// ================= COMPOSITE (obras) =================
+abstract class Obra {                                // Rol: COMPONENT (abstracta: tiene ESTADO)
+    private String nombre;
+    private LocalDate fechaDeInicio;
+    private Empleado lider;
+
+    public Obra(String nombre, LocalDate fechaDeInicio, Empleado lider) {
+        this.nombre=nombre; this.fechaDeInicio=fechaDeInicio; this.lider=lider;
+    }
+    public String getNombre()  { return nombre; }
+    public Empleado getLider() { return lider; }
+    public LocalDate getFechaDeInicio() { return fechaDeInicio; }
+
+    public abstract double inversionTotal();
+}
+
+class Proyecto extends Obra {                        // Rol: LEAF
+    private int duracionEnDias;
+    private List&lt;Empleado&gt; empleados;
+
+    public Proyecto(String nombre, LocalDate fechaDeInicio, Empleado lider,
+                    List&lt;Empleado&gt; empleados, int duracionEnDias) {
+        super(nombre, fechaDeInicio, lider);
+        this.empleados = new ArrayList&lt;&gt;(empleados);
+        this.duracionEnDias = duracionEnDias;
+    }
+    public double inversionTotal() { return sueldoDeLosEmpleados() + sueldoDelLider(); }
+
+    private double sueldoDeLosEmpleados() {
+        return empleados.stream().mapToDouble(Empleado::sueldoDiario).sum() * duracionEnDias;
+    }
+    private double sueldoDelLider() {
+        return getLider().sueldoDiario() * duracionEnDias * 1.30;      // el lider cobra 30% extra
+    }
+}
+
+class Programa extends Obra {                        // Rol: COMPOSITE
+    private List&lt;Obra&gt; obras = new ArrayList&lt;&gt;();
+    private double costoFijoDeGestion;
+
+    public Programa(String nombre, LocalDate fechaDeInicio, Empleado lider, double costoFijoDeGestion) {
+        super(nombre, fechaDeInicio, lider);
+        this.costoFijoDeGestion = costoFijoDeGestion;
+    }
+    public void agregarObra(Obra obra)  { obras.add(obra); }
+    public void eliminarObra(Obra obra) { obras.remove(obra); }
+
+    public double inversionTotal() {                                   // recursivo (puede haber programas)
+        return costoFijoDeGestion + obras.stream().mapToDouble(Obra::inversionTotal).sum();
+    }
+    @Override
+    public LocalDate getFechaDeInicio() {                             // la MAS TEMPRANA de sus obras
+        return obras.stream().map(Obra::getFechaDeInicio)
+                    .min(Comparator.naturalOrder())
+                    .orElse(super.getFechaDeInicio());
+    }
+}
+
+// ================= ADAPTER (secretarias) =================
+interface Secretaria {                               // Rol: TARGET
+    double montoTotal();
+}
+
+class SecretariaDeObrasPublicas implements Secretaria {     // ya habla el protocolo del target
+    private String nombre;
+    private List&lt;Obra&gt; obras = new ArrayList&lt;&gt;();
+    public SecretariaDeObrasPublicas(String nombre) { this.nombre = nombre; }
+    public void agregarObra(Obra obra) { obras.add(obra); }
+    public double montoTotal() { return obras.stream().mapToDouble(Obra::inversionTotal).sum(); }
+}
+
+class SecretariaDeInfraestructura {                  // Rol: ADAPTEE (otro protocolo: NO se toca)
+    private List&lt;Obra&gt; obras = new ArrayList&lt;&gt;();
+    public void agregarObra(Obra obra) { obras.add(obra); }
+    public double inversionTotal() { return obras.stream().mapToDouble(Obra::inversionTotal).sum(); }
+}
+
+class SecretariaDeInfraestructuraAdapter implements Secretaria {   // Rol: ADAPTER
+    private SecretariaDeInfraestructura secretaria;
+    public SecretariaDeInfraestructuraAdapter(SecretariaDeInfraestructura s) { this.secretaria = s; }
+    public double montoTotal() { return secretaria.inversionTotal(); }   // traduce la llamada
+}
+
+class MinisterioDePlanificacion {                    // Rol: CLIENT (solo conoce la INTERFAZ)
+    private List&lt;Secretaria&gt; secretarias = new ArrayList&lt;&gt;();
+    public void agregarSecretaria(Secretaria s) { secretarias.add(s); }
+    public double montoTotalAInvertir() {
+        return secretarias.stream().mapToDouble(Secretaria::montoTotal).sum();
+    }
+}
+</pre>
+
+<h2>Actividad 4 — Instanciación (cuentas verificadas)</h2>
+<pre>
+Empleado lider   = new EmpleadoPublico("Ana",  "Arquitecta", 50000);
+Empleado albanil = new EmpleadoPublico("Luis", "Albanil",    30000);
+Empleado plomero = new EmpleadoPublico("Sol",  "Plomera",    35000);
+
+// LEAF: (30.000+35.000)*10 = 650.000  +  50.000*10*1,30 = 650.000   => 1.300.000
+Proyecto escuela = new Proyecto("Escuela N5", LocalDate.of(2026,3,1), lider,
+                                Arrays.asList(albanil, plomero), 10);
+// LEAF: 30.000*5 = 150.000  +  50.000*5*1,30 = 325.000              =>   475.000
+Proyecto plaza   = new Proyecto("Plaza Central", LocalDate.of(2026,1,15), lider,
+                                Arrays.asList(albanil), 5);
+
+// COMPOSITE: 200.000 + 1.300.000 + 475.000                          => 1.975.000
+Programa programaBarrial = new Programa("Programa Barrial", LocalDate.of(2026,6,1), lider, 200000);
+programaBarrial.agregarObra(escuela);
+programaBarrial.agregarObra(plaza);
+programaBarrial.getFechaDeInicio();     // 2026-01-15  <- el MIN de sus hijos (NO su fecha propia)
+
+// COMPOSITE dentro de COMPOSITE: 500.000 + 1.975.000                => 2.475.000
+Programa programaProvincial = new Programa("Programa Provincial", LocalDate.of(2026,6,1), lider, 500000);
+programaProvincial.agregarObra(programaBarrial);
+
+SecretariaDeObrasPublicas obrasPublicas = new SecretariaDeObrasPublicas("Obras Publicas");
+obrasPublicas.agregarObra(programaProvincial);
+
+SecretariaDeInfraestructura infraestructura = new SecretariaDeInfraestructura();   // el ADAPTEE
+infraestructura.agregarObra(plaza);                                                // 475.000
+Secretaria infraAdaptada = new SecretariaDeInfraestructuraAdapter(infraestructura);
+
+MinisterioDePlanificacion ministerio = new MinisterioDePlanificacion();
+ministerio.agregarSecretaria(obrasPublicas);
+ministerio.agregarSecretaria(infraAdaptada);        // entra como una secretaria mas
+
+ministerio.montoTotalAInvertir();       // 2.950.000,00   (2.475.000 + 475.000)
+</pre>
+
+</body>
+</html>

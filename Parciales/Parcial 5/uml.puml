@@ -1,0 +1,85 @@
+@startuml
+title Parcial 5 - Compania de Seguros (State)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class Poliza <<Context>> {
+  - mailTitular : String
+  - inventario : List<Item>
+  - gastosAdministrativos : List<GastoAdministrativo>
+  --
+  + agregarItem(Item) : Poliza
+  + cerrarInventario()
+  + pagar()
+  + cancelar()
+  + bonificar(codigo : int)
+  + montoAsegurado() : double
+  + precio() : double
+  + setEstado(EstadoPoliza)
+}
+
+abstract class EstadoPoliza <<State>> {
+  + agregarItem(Poliza, Item) : Poliza   {vacio}
+  + cerrarInventario(Poliza)             {vacio}
+  + pagar(Poliza)                        {vacio}
+  + cancelar(Poliza)                     {vacio}
+  + {abstract} aplicarDescuento(Poliza)
+}
+
+class Abierta <<ConcreteState>> {
+  + agregarItem(Poliza, Item) : Poliza
+  + cerrarInventario(Poliza)
+  + aplicarDescuento(Poliza)
+}
+class Cerrada <<ConcreteState>> {
+  + agregarItem(Poliza, Item) : Poliza
+  + pagar(Poliza)
+  + aplicarDescuento(Poliza)
+}
+class Vigente <<ConcreteState>> {
+  + cancelar(Poliza)
+  + aplicarDescuento(Poliza)
+}
+
+class Item {
+  - cantidad : int
+  - valorUnitario : double
+  + valor() : double
+}
+
+class GastoAdministrativo {
+  - concepto : String
+  - monto : double
+  + getMonto() : double
+}
+
+interface BonificacionService <<externa>> {
+  + codigoValido(int) : boolean
+  + anularCodigo(int)
+  + notificarTitular(String, int)
+}
+
+Poliza o--> "1" EstadoPoliza : estado actual
+Poliza o--> "*" Item : inventario
+Poliza o--> "*" GastoAdministrativo : gastos
+Poliza ..> BonificacionService : usa (pasos 1, 3 y 4)
+
+EstadoPoliza <|-- Abierta
+EstadoPoliza <|-- Cerrada
+EstadoPoliza <|-- Vigente
+
+Abierta ..> Cerrada : cerrarInventario()\nnew Cerrada()
+Cerrada ..> Vigente : pagar()\nnew Vigente()
+Vigente ..> Abierta : cancelar()\nnew Abierta()
+
+note bottom of EstadoPoliza
+  Metodos VACIOS por defecto:
+  "las operaciones no mencionadas
+  no surten efecto"
+end note
+@enduml

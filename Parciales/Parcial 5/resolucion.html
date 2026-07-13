@@ -1,0 +1,199 @@
+<html>
+<head><meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1cm 1.1cm; }
+body{font-family:Georgia,'Times New Roman',serif; font-size:9pt; line-height:1.15; margin:0; color:#000;}
+h1{font-size:13pt; margin:0;}
+.tag{color:#444; font-size:8pt; margin:0 0 4pt 0;}
+h2{font-size:10pt; margin:7pt 0 2pt 0; border-bottom:1px solid #666;}
+p{margin:2pt 0;}
+pre{font-family:Consolas,'Courier New',monospace; font-size:7pt; line-height:1.05; background:#f4f4f4; border:1px solid #ccc; padding:3pt; margin:3pt 0;}
+table{border-collapse:collapse; width:100%; font-size:8pt; margin:3pt 0;}
+td,th{border:1px solid #888; padding:1pt 3pt; text-align:left; vertical-align:top;}
+th{background:#eee;}
+ul{margin:2pt 0 2pt 0; padding-left:14pt;}
+li{margin:0;}
+.ojo{background:#fff3cd; border:1px solid #d6c26b; padding:2pt 4pt; font-size:8pt; margin:3pt 0;}
+</style>
+</head>
+<body>
+
+<h1>Parcial 5 — Compañía de Seguros</h1>
+<div class="tag">STATE · 1er Sem. 2022 — 1ra Fecha</div>
+
+<h2>Enunciado (resumen)</h2>
+<p><b>Póliza</b> con un <b>inventario</b> de Ítems (cantidad × valor unitario) y una colección de <b>Gastos Administrativos</b> (concepto + monto). <b>Monto asegurado</b> = suma del valor de los ítems. <b>Precio</b> = <b>0,75% del monto asegurado</b> (× 0.0075) + gastos administrativos.</p>
+<p>Pasa por 3 <b>fases</b>:</p>
+<ul>
+<li><b>Abierta</b> (inicial): <i>agregarItem</i> (se invoca varias veces) · <i>cerrarInventario</i> → pasa a Cerrada.</li>
+<li><b>Cerrada</b>: <i>agregarItem</i> → lo agrega + carga un gasto "Recargo por extensión" del <b>3% del valor del ítem</b> · <i>pagar</i> → pasa a Vigente.</li>
+<li><b>Vigente</b>: agregar ítems <b>no surte efecto</b> · <i>cancelar</i> → elimina todos los gastos y vuelve a Abierta (conserva el inventario).</li>
+</ul>
+<p><b>Las operaciones no mencionadas en cada fase no surten ningún efecto.</b></p>
+<p><b>Bonificación</b> (por código de promoción). Pasos: 1) chequear validez · 2) <b>aplicar el descuento</b> · 3) anular el código · 4) notificar al titular. Los pasos 1, 3 y 4 son <b>siempre iguales</b> y se resuelven con la interfaz provista <code>BonificacionService</code> (<b>usar, no implementar</b>): <code>codigoValido(int)</code>, <code>anularCodigo(int)</code>, <code>notificarTitular(String, int)</code>. El <b>paso 2 depende de la fase</b>: <b>Abierta</b> → carga un gasto de <b>−$500</b> ("Bonificación Administrativa") · <b>Cerrada</b> → elimina el gasto de <b>mayor valor</b> · <b>Vigente</b> → elimina <b>todos</b> los gastos.</p>
+<p><b>Tareas:</b> 1) UML · 2) patrones y roles (Gamma) · 3) código Java · 4) test de unidad: la bonificación se aplica en una Póliza Vigente.</p>
+
+<h2>Actividad 1 — UML</h2>
+<p>[[UML]]</p>
+
+<h2>Actividad 2 — Patrones y roles</h2>
+<table>
+<tr><th>Clase</th><th>Rol</th></tr>
+<tr><td>Poliza</td><td><b>Context</b> (State): delega todo en su estado. Dueña del algoritmo de bonificación.</td></tr>
+<tr><td>EstadoPoliza</td><td><b>State</b> (abstracta): métodos <b>vacíos por defecto</b> → "las operaciones no mencionadas no surten efecto".</td></tr>
+<tr><td>Abierta, Cerrada, Vigente</td><td><b>ConcreteState</b>: sólo lo que corresponde + disparan la transición.</td></tr>
+<tr><td>BonificacionService</td><td>Interfaz externa (se usa, no se implementa). Variable <b>tipada con la interfaz</b>.</td></tr>
+</table>
+
+<div class="ojo"><b>Trampas que penalizan:</b> ① <b>NO es Template Method ni Strategy</b> — la secuencia de bonificación la ejecuta la Póliza en un solo método y <b>sólo el paso 2</b> se delega al estado. ② Los métodos del estado <b>reciben la Póliza</b> por parámetro (para poder pedirle <code>setEstado</code>). ③ <code>agregarItem</code> <b>devuelve la Póliza</b> (<code>return this</code>) porque "se espera invocar varias veces" → permite encadenar. ④ <b>precio = monto × 0.0075</b>, no × 0.75. ⑤ Los vacíos van <b>heredados de la abstracta</b>, no repetidos en cada estado.</div>
+
+<h2>Actividad 3 — Código Java</h2>
+<pre>
+import java.util.*;
+
+class Item {                                   // dominio
+    private int cantidad; private double valorUnitario;
+    public Item(int cantidad, double valorUnitario) { this.cantidad=cantidad; this.valorUnitario=valorUnitario; }
+    public double valor() { return cantidad * valorUnitario; }        // 4 sillas x $2000 = 8000
+}
+
+class GastoAdministrativo {                    // dominio (el monto puede ser negativo)
+    private String concepto; private double monto;
+    public GastoAdministrativo(String concepto, double monto) { this.concepto=concepto; this.monto=monto; }
+    public double getMonto() { return monto; }
+}
+
+interface BonificacionService {                // INTERFAZ EXTERNA: usar, no implementar
+    boolean codigoValido(int codigo);
+    void anularCodigo(int codigo);
+    void notificarTitular(String mailTitular, int codigo);
+}
+
+class Poliza {                                 // Rol: CONTEXT
+    private String mailTitular;
+    private List&lt;Item&gt; inventario = new ArrayList&lt;&gt;();
+    private List&lt;GastoAdministrativo&gt; gastos = new ArrayList&lt;&gt;();
+    private EstadoPoliza estado = new Abierta();          // fase inicial
+    private BonificacionService bonificacionService;      // tipada con la INTERFAZ
+
+    public Poliza(String mailTitular, BonificacionService bonificacionService) {
+        this.mailTitular = mailTitular; this.bonificacionService = bonificacionService;
+    }
+
+    // --- delega en el estado ---
+    public Poliza agregarItem(Item item) { return estado.agregarItem(this, item); }  // encadenable
+    public void cerrarInventario()       { estado.cerrarInventario(this); }
+    public void pagar()                  { estado.pagar(this); }
+    public void cancelar()               { estado.cancelar(this); }
+
+    // --- el algoritmo de bonificacion vive ACA (no es Template Method) ---
+    public void bonificar(int codigo) {
+        if (bonificacionService.codigoValido(codigo)) {                 // 1
+            estado.aplicarDescuento(this);                              // 2 <- DEPENDE DE LA FASE
+            bonificacionService.anularCodigo(codigo);                   // 3
+            bonificacionService.notificarTitular(mailTitular, codigo);  // 4
+        }
+    }
+
+    // --- consultas ---
+    public double montoAsegurado() { return inventario.stream().mapToDouble(Item::valor).sum(); }
+    public double precio()         { return montoAsegurado() * 0.0075 + totalGastos(); }   // 0,75% !!
+    public double totalGastos()    { return gastos.stream().mapToDouble(GastoAdministrativo::getMonto).sum(); }
+
+    // --- servicios que usan los estados ---
+    public void setEstado(EstadoPoliza estado) { this.estado = estado; }
+    public EstadoPoliza getEstado()            { return estado; }
+    public void agregarAlInventario(Item item) { inventario.add(item); }
+    public void agregarGasto(GastoAdministrativo gasto) { gastos.add(gasto); }
+    public void eliminarGastoDeMayorValor() {
+        gastos.stream().max(Comparator.comparingDouble(GastoAdministrativo::getMonto))
+              .ifPresent(gastos::remove);
+    }
+    public void eliminarTodosLosGastos() { gastos.clear(); }
+    public List&lt;GastoAdministrativo&gt; getGastos() { return gastos; }
+    public List&lt;Item&gt; getInventario()            { return inventario; }
+}
+
+abstract class EstadoPoliza {                  // Rol: STATE. Vacios por defecto = "no surten efecto"
+    public Poliza agregarItem(Poliza p, Item i) { return p; }
+    public void cerrarInventario(Poliza p) { }
+    public void pagar(Poliza p) { }
+    public void cancelar(Poliza p) { }
+    public abstract void aplicarDescuento(Poliza p);      // el paso 2: SI depende de la fase
+}
+
+class Abierta extends EstadoPoliza {           // Rol: CONCRETE STATE
+    public Poliza agregarItem(Poliza p, Item i) { p.agregarAlInventario(i); return p; }
+    public void cerrarInventario(Poliza p)      { p.setEstado(new Cerrada()); }        // TRANSICION
+    public void aplicarDescuento(Poliza p) {
+        p.agregarGasto(new GastoAdministrativo("Bonificacion Administrativa", -500));
+    }
+}
+
+class Cerrada extends EstadoPoliza {           // Rol: CONCRETE STATE
+    public Poliza agregarItem(Poliza p, Item i) {
+        p.agregarAlInventario(i);
+        p.agregarGasto(new GastoAdministrativo("Recargo por extension", i.valor() * 0.03));   // 3%
+        return p;
+    }
+    public void pagar(Poliza p)            { p.setEstado(new Vigente()); }             // TRANSICION
+    public void aplicarDescuento(Poliza p) { p.eliminarGastoDeMayorValor(); }
+}
+
+class Vigente extends EstadoPoliza {           // Rol: CONCRETE STATE (agregarItem: hereda el vacio)
+    public void cancelar(Poliza p) { p.eliminarTodosLosGastos(); p.setEstado(new Abierta()); }  // TRANSICION
+    public void aplicarDescuento(Poliza p) { p.eliminarTodosLosGastos(); }
+}
+</pre>
+
+<h2>Actividad 4 — Test de unidad</h2>
+<p>SUT = <code>Poliza</code> (va real). El colaborador externo se reemplaza por un <b>stub</b>.</p>
+<pre>
+class PolizaTest {
+    private Poliza poliza;
+    private BonificacionService stub = new BonificacionService() {   // STUB del colaborador
+        public boolean codigoValido(int c) { return true; }
+        public void anularCodigo(int c) { }
+        public void notificarTitular(String m, int c) { }
+    };
+
+    @BeforeEach                                        // SETUP
+    void setUp() {
+        poliza = new Poliza("titular@mail.com", stub);
+        poliza.agregarItem(new Item(4, 2000));         // 8000
+        poliza.cerrarInventario();                     // -> Cerrada
+        poliza.agregarItem(new Item(1, 10000));        // 10000 + gasto del 3% (300)
+        poliza.pagar();                                // -> Vigente
+    }
+
+    @Test
+    void laBonificacionEnUnaPolizaVigenteEliminaTodosLosGastos() {
+        assertTrue(poliza.getEstado() instanceof Vigente);
+        assertEquals(300.0, poliza.totalGastos(), 0.001);       // precondicion: TIENE gastos
+
+        poliza.bonificar(1234);                                 // EXERCISE
+
+        assertEquals(0, poliza.getGastos().size());             // VERIFY
+        assertEquals(135.0, poliza.precio(), 0.001);            // 18000 * 0.0075
+    }                                                           // TEARDOWN: automatico
+}
+</pre>
+
+<h2>Demo — cuentas verificadas</h2>
+<pre>
+Poliza p = new Poliza("titular@mail.com", servicio);
+p.agregarItem(new Item(4, 2000)).agregarItem(new Item(1, 12000));   // encadenado (ABIERTA)
+p.montoAsegurado();   // 20000.0
+p.precio();           // 150.0     (20000 * 0.0075)
+p.cerrarInventario();                                   // ABIERTA -> CERRADA
+p.agregarItem(new Item(1, 30000));                      // + gasto 900 (3% de 30000)
+p.precio();           // 1275.0    (375 + 900)
+p.pagar();                                              // CERRADA -> VIGENTE
+p.agregarItem(new Item(10, 99999));                     // NO surte efecto
+p.getInventario().size();   // 3
+p.bonificar(1234);                                      // VIGENTE: elimina TODOS los gastos
+p.getGastos().size();       // 0
+</pre>
+
+</body>
+</html>

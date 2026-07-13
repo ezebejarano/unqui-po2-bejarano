@@ -1,0 +1,90 @@
+@startuml
+title Parcial 6 - Empresa de Ingenieria (Composite + Strategy)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class EmpresaIngenieria <<Context>> {
+  - razonSocial : String
+  - cuit : String
+  + costoAAfrontar() : double
+  + setFormaDePago(EstrategiaFormaPago)
+}
+
+interface EstrategiaFormaPago <<Strategy>> {
+  + ajustarPrecio(montoEnEfectivo : double) : double
+}
+class PagoEfectivo <<ConcreteStrategy>> {
+  + ajustarPrecio(double) : double
+}
+class PagoMercadoPago <<ConcreteStrategy>> {
+  + ajustarPrecio(double) : double\n  (monto * 0.97)
+}
+class PagoTarjetaCredito <<ConcreteStrategy>> {
+  - cuotas : int
+  + ajustarPrecio(double) : double\n  (monto * (1 + 0.04 * cuotas))
+}
+
+interface Actividad <<Component>> {
+  + costo(EstrategiaFormaPago) : double
+}
+
+class Transporte <<Leaf>> {
+  - distancia : double
+  - peso : double
+  - precio : double
+  + costo(EstrategiaFormaPago) : double\n  (distancia * peso * precio)
+}
+
+class Obra <<Leaf>> {
+  + costo(EstrategiaFormaPago) : double\n  (formaPago.ajustarPrecio(materiales)\n   + costoOperarios())
+  + agregarMaterial(Material)
+  + agregarOperario(Operario)
+}
+
+class Proyecto <<Composite>> {
+  - nombre : String
+  - costoDeGestion : double = 0.20
+  + agregarActividad(Actividad)
+  + eliminarActividad(Actividad)
+  + costo(EstrategiaFormaPago) : double\n  (SUMA(hijos) * 1.20)
+}
+
+class Material {
+  - cantidad : int
+  - precioUnitario : double
+  + subtotal() : double
+}
+
+class Operario {
+  - horasTrabajadas : double
+  - valorHora : double
+  - antiguedad : int
+  + costo() : double\n  (+10% si antiguedad > 5)
+}
+
+EmpresaIngenieria o--> "1" Actividad : actividadActual
+EmpresaIngenieria o--> "1" EstrategiaFormaPago : formaDePago
+
+EstrategiaFormaPago <|.. PagoEfectivo
+EstrategiaFormaPago <|.. PagoMercadoPago
+EstrategiaFormaPago <|.. PagoTarjetaCredito
+
+Actividad <|.. Transporte
+Actividad <|.. Obra
+Actividad <|.. Proyecto
+
+Proyecto o--> "*" Actividad : actividades
+Obra o--> "*" Material
+Obra o--> "*" Operario
+
+note right of Proyecto
+  Recursion estructural:
+  un Proyecto contiene
+  otros Proyectos
+end note
+@enduml

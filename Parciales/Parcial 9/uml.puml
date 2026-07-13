@@ -1,0 +1,72 @@
+@startuml
+title Parcial 9 - Logger (Observer + Strategy)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+class Logger <<Subject>> {
+  - sistemasDeEscucha : List<SistemaDeEscucha>
+  + registrar(SistemaDeEscucha)
+  + desregistrar(SistemaDeEscucha)
+  + log(mensaje : String, severidad : Severidad)
+}
+
+class SistemaDeEscucha <<ConcreteObserver + Context>> {
+  + recibirMensaje(String, Severidad)
+  + cambiarRegla(EstrategiaRegla)
+  + getMonitor() : IMonitor
+}
+
+interface EstrategiaRegla <<Strategy>> {
+  + publicar(mensaje, severidad, SistemaDeEscucha)
+}
+
+class ReglaVerbose <<ConcreteStrategy>> {
+  - mensajesEnviados : List<String>
+  - destinatario : String
+  publica TODO en GRAY
+  a los 100 mensajes -> sendEmail
+}
+
+class ReglaProduccion <<ConcreteStrategy>> {
+  - nivelesPublicables : Set<Severidad>
+  publica SOLO los niveles configurados
+}
+
+interface IMonitor <<externa>> {
+  + printScreen(msg : String, color : String)
+  BLUE / YELLOW / RED / GRAY
+}
+
+interface IEmailClient <<externa>> {
+  + sendEmail(to, subject, text)
+}
+
+enum Severidad {
+  TRACE
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+Logger o--> "*" SistemaDeEscucha : notifica
+SistemaDeEscucha o--> "1" EstrategiaRegla : regla (cambiable en runtime)
+SistemaDeEscucha o--> "1" IMonitor : su unico monitor
+EstrategiaRegla <|.. ReglaVerbose
+EstrategiaRegla <|.. ReglaProduccion
+ReglaVerbose o--> "1" IEmailClient : usa
+ReglaProduccion ..> Severidad
+Logger ..> Severidad
+
+note bottom of EstrategiaRegla
+  La regla recibe el SistemaDeEscucha
+  por parametro para poder llegar
+  a SU monitor
+end note
+@enduml

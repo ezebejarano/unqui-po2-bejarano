@@ -1,0 +1,84 @@
+@startuml
+title Parcial 10 - Formatos textuales (Template Method) + API redes sociales (Adapter)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+package "Ejercicio 2 - Template Method" {
+
+  class Documento <<Context>> {
+    - fechaCreacion : String
+    - titulo : String
+    - text : String
+    - firma : String
+    + getFechaCreacion() : String
+    + getTitulo() : String
+    + getText() : String
+    + getFirma() : String
+    + setFormateador(Formateador)
+    + mostrar() : String
+  }
+
+  abstract class Formateador <<AbstractClass>> {
+    + {final} darFormato(Documento) : String\n  = formatearFecha + formatearTitulo\n  + formatearTexto + formatearFirma
+    --
+    # {abstract} formatearFecha(Documento) : String
+    # {abstract} formatearTitulo(Documento) : String
+    # {abstract} formatearTexto(Documento) : String
+    # {abstract} formatearFirma(Documento) : String
+  }
+
+  class FormateadorLatex <<ConcreteClass>>
+  class FormateadorHTML <<ConcreteClass>> {
+    formatearFecha() = ""\n(el formato HTML no muestra la fecha)
+  }
+  class FormateadorTextoSimple <<ConcreteClass>>
+
+  Documento o--> "1" Formateador : formateador
+  Formateador <|-- FormateadorLatex
+  Formateador <|-- FormateadorHTML
+  Formateador <|-- FormateadorTextoSimple
+}
+
+package "Ejercicio 1 - Adapter" {
+
+  class AppAnalisisRedesSociales <<Client>> {
+    + esInfluencer(userId) : boolean
+  }
+
+  interface ApiRedSocial <<Target>> {
+    + seguidores(userId) : List<String>
+    + posts(userId) : int
+  }
+
+  class ApiFacebookAdapter <<Adapter>> {
+    + seguidores(userId)\n  -> api.friends(userId)
+    + posts(userId)\n  -> api.status(userId).size()
+  }
+
+  class ApiFacebook <<Adaptee>> {
+    + friends(facebookId) : List<String>
+    + status(facebookId) : List<String>
+  }
+
+  AppAnalisisRedesSociales o--> "1" ApiRedSocial
+  ApiRedSocial <|.. ApiFacebookAdapter
+  ApiFacebookAdapter o--> "1" ApiFacebook : adaptado
+}
+
+note bottom of ApiFacebookAdapter
+  La adaptacion es COMPLETA:
+  nombre, parametros Y RETORNO
+  (List<String> -> int con .size())
+end note
+
+note bottom of Formateador
+  darFormato es el TEMPLATE METHOD:
+  es final para que nadie
+  rompa la secuencia
+end note
+@enduml
